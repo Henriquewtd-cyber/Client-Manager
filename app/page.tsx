@@ -1,8 +1,6 @@
-"use client";
+// app/page.tsx
+import { redirect } from 'next/navigation';
 
 export default function Home() {
-
-  window.location.replace('/new-appointment');
-
-  return null;
+  redirect('/new-appointment');
 }

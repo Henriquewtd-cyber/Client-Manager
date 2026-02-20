@@ -1,8 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { BookingModal, BookingResult } from "@/components/BookingModal";
-
+import Link from "next/link";
 // ── Dados dos serviços ──────────────────────────────────────────────────────
 
 const SERVICES = [
@@ -92,16 +91,9 @@ type Booking = { date: Date; time: string };
 // ── Componente principal ─────────────────────────────────────────────────────
 
 export default function AgendamentoPage() {
-  const [bookings, setBookings] = useState<Record<string, Booking>>({});
   const [activeModal, setActiveModal] = useState<ServiceId | null>(null);
 
   const activeService = SERVICES.find(s => s.id === activeModal);
-  const bookedCount = Object.keys(bookings).length;
-
-  const handleConfirm = (id: string, result: BookingResult) => {
-    setBookings(prev => ({ ...prev, [id]: result }));
-    setActiveModal(null);
-  };
 
   const MESES_SHORT = ["jan", "fev", "mar", "abr", "mai", "jun", "jul", "ago", "set", "out", "nov", "dez"];
 
@@ -115,7 +107,7 @@ export default function AgendamentoPage() {
         .fade-up { animation: fadeUp 0.45s ease both; }
       `}</style>
 
-      <main className="min-h-screen bg-white">
+      <main className="min-h-screen bg-linear-to-tr from-white to-blue-50">
 
         {/* ── Hero ─────────────────────────────────────────────── */}
         <section className="max-w-5xl mx-auto px-5 sm:px-8 pt-16 pb-12">
@@ -149,22 +141,7 @@ export default function AgendamentoPage() {
               </p>
             </div>
 
-            {/* booking counter */}
-            {bookedCount > 0 && (
-              <div className="flex items-center gap-3 border border-gray-100 rounded-2xl px-4 py-3 bg-gray-50 shrink-0 fade-up">
-                <div className="relative">
-                  <div className="w-10 h-10 rounded-xl bg-gray-900 flex items-center justify-center">
-                    <span className="text-white font-black text-base" style={{ fontFamily: "'Syne',sans-serif" }}>{bookedCount}</span>
-                  </div>
-                  <span className="absolute -top-1 -right-1 w-3 h-3 bg-emerald-400 rounded-full border-2 border-white" />
-                </div>
-                <p className="text-sm text-gray-600">
-                  <span className="font-bold text-gray-900">{bookedCount === 1 ? "1 sessão" : `${bookedCount} sessões`}</span>
-                  <br />
-                  <span className="text-xs text-gray-400">agendada{bookedCount > 1 ? "s" : ""}</span>
-                </p>
-              </div>
-            )}
+
           </div>
         </section>
 
@@ -177,7 +154,6 @@ export default function AgendamentoPage() {
         <section className="max-w-5xl mx-auto px-5 sm:px-8 py-10">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {SERVICES.map((svc, i) => {
-              const booking = bookings[svc.id];
               return (
                 <div
                   key={svc.id}
@@ -221,47 +197,19 @@ export default function AgendamentoPage() {
                   </div>
 
                   {/* CTA / booked state */}
-                  {booking ? (
-                    <div className="space-y-2">
-                      <div
-                        className="flex items-center gap-2.5 px-3 py-2.5 rounded-2xl"
-                        style={{ background: svc.color + "10" }}
-                      >
-                        <span
-                          className="w-2 h-2 rounded-full shrink-0"
-                          style={{ background: svc.color }}
-                        />
-                        <div>
-                          <p className="text-[10px] font-bold uppercase tracking-wider" style={{ color: svc.color }}>Agendado</p>
-                          <p className="text-xs font-semibold text-gray-700">
-                            {booking.date.getDate()} de {MESES_SHORT[booking.date.getMonth()].charAt(0).toUpperCase() + MESES_SHORT[booking.date.getMonth()].slice(1)} · {booking.time}
-                          </p>
-                        </div>
-                      </div>
-                      <div className="flex gap-2">
-                        <button
-                          onClick={() => setActiveModal(svc.id)}
-                          className="flex-1 py-2.5 rounded-2xl text-xs font-bold transition-colors border"
-                          style={{ borderColor: svc.color + "44", color: svc.color }}
-                        >
-                          Reagendar
-                        </button>
-                        <button
-                          onClick={() => setBookings(prev => { const n = { ...prev }; delete n[svc.id]; return n; })}
-                          className="w-10 py-2.5 rounded-2xl text-xs text-gray-300 hover:text-red-400 border border-gray-100 hover:border-red-100 transition-colors"
-                        >
-                          ✕
-                        </button>
-                      </div>
-                    </div>
-                  ) : (
-                    <button
-                      onClick={() => setActiveModal(svc.id)}
+                  {(
+                    <Link
+                      href={`/new-appointment/session?id=${svc.id}`}
                       className="w-full py-3 rounded-2xl text-sm font-bold text-white transition-all duration-150 hover:opacity-90 hover:-translate-y-0.5 active:translate-y-0"
-                      style={{ background: svc.color }}
                     >
-                      Agendar sessão
-                    </button>
+                      <button
+                        onClick={() => { }}
+                        className="w-full py-3 rounded-2xl text-sm font-bold text-white transition-all duration-150 hover:opacity-90 hover:-translate-y-0.5 active:translate-y-0"
+                        style={{ background: svc.color }}
+                      >
+                        Agendar sessão
+                      </button>
+                    </Link>
                   )}
                 </div>
               );
@@ -274,17 +222,6 @@ export default function AgendamentoPage() {
           Horários no fuso de Brasília · BRT (UTC−3)
         </p>
       </main>
-
-      {/* ── Modal ────────────────────────────────────────────── */}
-      {activeModal && activeService && (
-        <BookingModal
-          serviceName={activeService.label}
-          accentColor={activeService.color}
-          duration={activeService.duration}
-          onConfirm={(result: BookingResult) => handleConfirm(activeModal, result)}
-          onClose={() => setActiveModal(null)}
-        />
-      )}
     </>
   );
 }

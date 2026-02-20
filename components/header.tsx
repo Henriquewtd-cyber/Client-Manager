@@ -5,11 +5,24 @@ import { useEffect, useState } from "react"
 
 import { Bell, User, Calendar, DollarSign } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { usePathname } from 'next/navigation';
+
 
 
 export function Header() {
+  const pathname = usePathname();
 
+  const [showHeader, setShowHeader] = useState(true);
 
+  useEffect(() => {
+    if (pathname.startsWith("/new-appointment")) {
+      setShowHeader(false);
+    } else {
+      setShowHeader(true);
+    }
+  }, [pathname]);
+
+  if (!showHeader) return null;
 
   return (
     <>
