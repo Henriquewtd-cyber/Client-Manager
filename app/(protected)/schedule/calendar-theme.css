@@ -1,0 +1,113 @@
+/* Container geral */
+.rbc-calendar {
+    background-color: #ffffff;
+    border-radius: 12px;
+    padding: 10px;
+    font-family: "Inter", sans-serif;
+}
+
+/* Barra superior (mês / semana / botões) */
+.rbc-toolbar {
+    margin-bottom: 20px;
+}
+
+.rbc-toolbar button {
+    background-color: #f3f4f6;
+    border: 1px solid #e5e7eb;
+    color: #374151;
+    padding: 6px 12px;
+    border-radius: 8px;
+    transition: all 0.2s ease;
+}
+
+.rbc-toolbar button:hover {
+    background-color: #e5e7eb;
+}
+
+.rbc-toolbar button.rbc-active {
+    background-color: #2563eb;
+    color: white;
+    border: none;
+}
+
+/* Cabeçalho dos dias (Seg, Ter, etc) */
+.rbc-header {
+    background-color: #f9fafb;
+    padding: 10px 0;
+    font-weight: 500;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+/* Dia atual (modo mês) */
+.rbc-today {
+    background-color: rgba(37, 99, 235, 0.15) !important;
+}
+
+/* Se quiser algo mais forte */
+.rbc-month-view .rbc-today {
+    background-color: #eff6ff !important;
+    border: 1px solid #bfdbfe;
+}
+
+/* Cada célula do calendário */
+.rbc-day-bg {
+    background-color: white;
+    transition: background 0.2s ease;
+}
+
+.rbc-day-bg:hover {
+    background-color: #f3f4f6;
+}
+
+/* Linha da hora atual */
+.rbc-current-time-indicator {
+    background-color: #2563eb;
+    height: 2px;
+}
+
+/* Eventos */
+.rbc-event {
+    background-color: #2563eb;
+    border-radius: 8px;
+    border: none;
+    padding: 4px 6px;
+    font-size: 0.85rem;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
+}
+
+.rbc-toolbar button.rbc-active {
+    background-color: #2563eb !important;
+    color: white !important;
+    box-shadow: none !important;
+}
+
+.rbc-event:hover {
+    opacity: 0.9;
+}
+
+/* Visual da visualização semanal */
+.rbc-time-view {
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+}
+
+/* Remove bordas pesadas */
+.rbc-month-view,
+.rbc-time-view,
+.rbc-agenda-view {
+    border: 1px solid #e5e7eb;
+}
+
+/* Domingo */
+.rbc-month-view .rbc-row-bg>.rbc-day-bg:nth-child(7n + 1) {
+    background-color: #f8fafc;
+}
+
+/* Sábado */
+.rbc-month-view .rbc-row-bg>.rbc-day-bg:nth-child(7n) {
+    background-color: #f1f5f9;
+}
+
+.rbc-week-view .rbc-row-bg>.rbc-day-bg:nth-child(7n) {
+    background-color: #f1f5f9;
+}
