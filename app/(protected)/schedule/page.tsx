@@ -65,7 +65,7 @@ const formats = {
     const capitalizedMonth =
       month.charAt(0).toUpperCase() + month.slice(1);
 
-    return `${capitalizedMonth} ${startDate.format("D")}–${endDate.format("D")}`;
+    return `${capitalizedMonth} ${startDate.format("D")}-${endDate.format("D")}`;
   },
   monthHeaderFormat: (date: Date) =>
     dayjs(date)

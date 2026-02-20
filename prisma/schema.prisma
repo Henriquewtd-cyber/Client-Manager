@@ -15,3 +15,17 @@ model User {
   password  String
   role      String
 }
+
+model Event {
+  id           String   @id @default(auto()) @map("_id") @db.ObjectId
+  title        String
+  nomeCliente  String
+  telefone     String
+  start        DateTime
+  end          DateTime
+  description  String?
+  color        String
+  status       String
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}

@@ -6,31 +6,80 @@ import bcrypt from "bcrypt";
 
 // Função para buscar um usuário pelo email
 export async function buscarUsuarioPorEmail(email: string): Promise<User | null> {
-    return await prisma.user.findUnique({
-        where: {
-            email: email,
-        },
-    });
+    try {
+        return await prisma.user.findUnique({
+            where: {
+                email: email,
+            },
+        });
+    } catch (error) {
+        console.error("Erro ao buscar usuário:", error);
+        return null;
+    }
 }
 
 
 // Função para criar um novo usuário
 export async function criarUsuario() {
     try {
-        const password = "123456";
+        const role = "adm";
+        const name = "Henrique";
         const email = "henrique@email.com";
+        const password = "123456";
+
         const hashedPassword = await bcrypt.hash(password, 10);
 
         await prisma.user.create({
             data: {
-                role: "adm",
-                name: "Henrique",
-                email,
+                role: role,
+                name: name,
+                email: email,
                 password: hashedPassword
             },
         });
-        console.log("Usuário criado com sucesso!");
     } catch (error) {
         console.error("Erro ao criar usuário:", error);
+    }
+}
+
+//Função para criar um evento novo
+
+export async function criarEvento(data: any) {
+    const eventColors: Record<string, string> = {
+        "Análise de perfil": "#1E90FF",  // Azul
+        "Reunião de cliente": "#FFA500",  // Laranja
+        "Sessão estratégica": "#32CD32",  // Verde
+        "Terapia": "#FF69B4",           // Rosa
+        "Aula de teclado": "#8A2BE2", // Azul-claro
+        "Desenvolvimento pessoal": "#FFD700", // Dourado
+    };
+
+    try {
+        await prisma.event.create({
+            data: {
+                title: data.title,
+                nomeCliente: data.nomeCliente,
+                telefone: data.telefone,
+                start: data.start,
+                end: data.end,
+                description: data.description,
+                status: data.status,
+                color: eventColors[data.title] || "#1E90FF", // Cor padrão se não encontrada
+            },
+        });
+    } catch (error) {
+        console.error("Erro ao criar evento:", error);
+    }
+}
+
+//Função para pegar todos os eventos do banco de dados
+
+export async function pegarTodosEventos() {
+    try {
+        const eventos = await prisma.event.findMany();
+        return eventos;
+    } catch (error) {
+        console.error("Erro ao buscar eventos:", error);
+        return [];
     }
 }

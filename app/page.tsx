@@ -1,7 +1,8 @@
+"use client";
 
 export default function Home() {
-  return (
-    <div className="flex min-h-screen flex-col items-center justify-between p-24"> aaaaaaaaaaaaaaaaa
-    </div>
-  );
+
+  window.location.replace('/new-appointment');
+
+  return null;
 }
