@@ -20,6 +20,10 @@
     transition: all 0.2s ease;
 }
 
+.rbc-agenda-event-cell {
+    cursor: pointer;
+}
+
 .rbc-toolbar button:hover {
     background-color: #e5e7eb;
 }
