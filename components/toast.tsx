@@ -50,7 +50,7 @@ export function ToastContainer({ toasts, removeToast }: ToastProps) {
             className={`${config.bgColor} ${config.borderColor} ${config.textColor} border rounded-lg p-4 shadow-lg max-w-sm animate-in fade-in slide-in-from-top-2 duration-300`}
           >
             <div className="flex items-center gap-3">
-              <Icon className="w-5 h-5 flex-shrink-0" />
+              <Icon className="w-5 h-5 shrink-0" />
               <p className="flex-1 text-sm font-medium">{toast.message}</p>
               <button
                 onClick={() => removeToast(toast.id)}

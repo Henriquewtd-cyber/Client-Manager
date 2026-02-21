@@ -336,6 +336,8 @@ export default function AgendarPage({
     async function handleSubmit(dados: any) {
         if (!allDone) return;
 
+        setModalAberto(false);
+
         try {
             const res = await fetch("/api/new-appointment", {
                 method: "POST",
@@ -352,7 +354,7 @@ export default function AgendarPage({
                         "error"
                     );
                 } else {
-                    addToast("Erro ao realizar login: " + res.statusText, "error");
+                    addToast("Erro ao processar agendamento: " + res.statusText, "error");
                 }
                 return;
             }
@@ -363,7 +365,7 @@ export default function AgendarPage({
                 addToast("Agendamento realizado com sucesso!", "success");
                 setTimeout(() => {
                     window.location.href = "/new-appointment";
-                }, 1000);
+                }, 1500);
             } else {
                 setIsLoading(false);
                 addToast("Erro ao realizar agendamento: " + data.error, "error");
@@ -387,7 +389,7 @@ export default function AgendarPage({
         .fu { animation:fadeUp 0.4s ease both; }
       `}</style>
 
-            <div className="min-h-screen bg-white">
+            <div className="min-h-screen bg-white bg-linear-to-tr from-white to-blue-50">
                 <ConfirmacaoModal
                     isOpen={modalAberto}
                     onClose={() => setModalAberto(false)}
@@ -395,6 +397,9 @@ export default function AgendarPage({
                     numeroConsultas={slots.filter(s => s.date && s.time).length}
                     valorTotal={total}
                 />
+
+                <ToastContainer toasts={toasts} removeToast={removeToast} />
+
                 {/* top bar */}
                 <div className="sticky top-0 z-10 bg-white/90 backdrop-blur-sm border-b border-gray-100">
                     <div className="max-w-2xl mx-auto px-5 py-3.5 flex items-center justify-between">
