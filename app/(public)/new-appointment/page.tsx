@@ -86,7 +86,6 @@ const SERVICES = [
 ] as const;
 
 type ServiceId = typeof SERVICES[number]["id"];
-type Booking = { date: Date; time: string };
 
 // ── Componente principal ─────────────────────────────────────────────────────
 
@@ -219,7 +218,7 @@ export default function AgendamentoPage() {
 
         {/* ── Footer note ──────────────────────────────────────── */}
         <p className="text-center text-[11px] text-gray-300 pb-10">
-          Horários no fuso de Brasília · BRT (UTC−3)
+          Horários no fuso de Brasília · BRT (UTC-3)
         </p>
       </main>
     </>

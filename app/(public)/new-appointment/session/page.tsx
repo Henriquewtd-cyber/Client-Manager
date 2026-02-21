@@ -3,6 +3,9 @@
 import { useState, useRef, useEffect } from "react";
 import { createPortal } from "react-dom";
 import { useSearchParams } from "next/navigation";
+import { ToastContainer, useToast } from "@/components/toast";
+import ConfirmacaoModal from "@/components/ConfirmModal";
+
 
 // ─── Data ─────────────────────────────────────────────────────────────────────
 
@@ -324,6 +327,57 @@ export default function AgendarPage({
     const total = slots.length * pricePerSession;
     const allDone = completedCount === slots.length;
 
+
+    const { toasts, addToast, removeToast } = useToast();
+    const [isLoading, setIsLoading] = useState(false);
+
+    const [modalAberto, setModalAberto] = useState(false);
+
+    async function handleSubmit(dados: any) {
+        if (!allDone) return;
+
+        try {
+            const res = await fetch("/api/new-appointment", {
+                method: "POST",
+                headers: { "Content-type": "application/json" },
+                body: JSON.stringify({ slots, total, service: SERVICES_MAP[serviceId].label, dados, duration }),
+            });
+
+            if (!res.ok) {
+                const contentType = res.headers.get("content-type");
+                if (contentType && contentType.includes("application/json")) {
+                    const data = await res.json();
+                    addToast(
+                        "Erro ao realizar agendamento: " + (data.error || "Erro desconhecido"),
+                        "error"
+                    );
+                } else {
+                    addToast("Erro ao realizar login: " + res.statusText, "error");
+                }
+                return;
+            }
+
+            const data = await res.json();
+
+            if (data.status === 200) {
+                addToast("Agendamento realizado com sucesso!", "success");
+                setTimeout(() => {
+                    window.location.href = "/new-appointment";
+                }, 1000);
+            } else {
+                setIsLoading(false);
+                addToast("Erro ao realizar agendamento: " + data.error, "error");
+            }
+        } catch (error) {
+            setIsLoading(false);
+            console.error("Erro na requisição:", error);
+            addToast("Erro ao realizar agendamento. Tente novamente.", "error");
+        }
+    }
+
+
+
+
     return (
         <>
             <style>{`
@@ -334,7 +388,13 @@ export default function AgendarPage({
       `}</style>
 
             <div className="min-h-screen bg-white">
-
+                <ConfirmacaoModal
+                    isOpen={modalAberto}
+                    onClose={() => setModalAberto(false)}
+                    onConfirmar={handleSubmit}
+                    numeroConsultas={slots.filter(s => s.date && s.time).length}
+                    valorTotal={total}
+                />
                 {/* top bar */}
                 <div className="sticky top-0 z-10 bg-white/90 backdrop-blur-sm border-b border-gray-100">
                     <div className="max-w-2xl mx-auto px-5 py-3.5 flex items-center justify-between">
@@ -465,9 +525,7 @@ export default function AgendarPage({
                                 </span>
                             </div>
                         </div>
-                        <button disabled={!allDone} onClick={() => onConfirm?.(slots, total)}
-                            className="w-full py-4 rounded-2xl text-sm font-bold text-white transition-all duration-200 hover:-translate-y-0.5 active:translate-y-0 disabled:opacity-30 disabled:cursor-not-allowed disabled:translate-y-0"
-                            style={{ background: accentColor }}>
+                        <button disabled={!allDone} onClick={() => { onConfirm?.(slots, total); setModalAberto(true); }} className="w-full py-4 rounded-2xl text-sm font-bold text-white transition-all duration-200 hover:-translate-y-0.5 active:translate-y-0 disabled:opacity-30 disabled:cursor-not-allowed disabled:translate-y-0" style={{ background: accentColor }}>
                             {allDone
                                 ? `Confirmar ${slots.length} ${slots.length === 1 ? "sessão" : "sessões"} · R$ ${total},00`
                                 : `Defina mais ${slots.length - completedCount} ${slots.length - completedCount === 1 ? "sessão" : "sessões"} para continuar`
@@ -475,7 +533,7 @@ export default function AgendarPage({
                         </button>
                     </div>
                 </div>
-            </div>
+            </div >
         </>
     );
 }

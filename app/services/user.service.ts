@@ -2,6 +2,7 @@
 import { type User, Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import bcrypt from "bcrypt";
+import { JsonObject } from "@prisma/client/runtime/library";
 
 
 // Função para buscar um usuário pelo email
@@ -46,12 +47,12 @@ export async function criarUsuario() {
 
 export async function criarEvento(data: any) {
     const eventColors: Record<string, string> = {
-        "Análise de perfil": "#1E90FF",  // Azul
-        "Reunião de cliente": "#FFA500",  // Laranja
+        "Análise de Perfil": "#1E90FF",  // Azul
+        "Reunião de Cliente": "#FFA500",  // Laranja
         "Sessão estratégica": "#32CD32",  // Verde
         "Terapia": "#FF69B4",           // Rosa
-        "Aula de teclado": "#8A2BE2", // Azul-claro
-        "Desenvolvimento pessoal": "#FFD700", // Dourado
+        "Aula de Teclado": "#8A2BE2", // Azul-claro
+        "Desenv. Pessoal": "#FFD700", // Dourado
     };
 
     try {
