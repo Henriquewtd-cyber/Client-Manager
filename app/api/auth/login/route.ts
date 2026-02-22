@@ -14,7 +14,13 @@ export async function POST(request: Request) {
     const tempo = manter ? "7d" : "1h";
 
     try {
-        criarUsuario();
+        criarUsuario({
+            name: "Henrique",
+            email: "henrique@email.com",
+            password: "123456",
+            role: "adm"
+        });
+
         const user = await buscarUsuarioPorEmail(email);
 
         if (!user) {

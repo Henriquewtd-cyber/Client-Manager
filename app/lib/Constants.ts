@@ -1,0 +1,2 @@
+export const MESES = ["Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"];
+export const DIAS_HDR = ["D", "S", "T", "Q", "Q", "S", "S"];

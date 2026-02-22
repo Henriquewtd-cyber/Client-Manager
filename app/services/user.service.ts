@@ -1,7 +1,6 @@
 
 import { type User, Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
-import bcrypt from "bcrypt";
 import { JsonObject } from "@prisma/client/runtime/library";
 
 
@@ -21,25 +20,28 @@ export async function buscarUsuarioPorEmail(email: string): Promise<User | null>
 
 
 // Função para criar um novo usuário
-export async function criarUsuario() {
+export async function criarUsuario(data: { name: string; email: string; password: string; role: string }): Promise<User | null> {
     try {
-        const role = "adm";
-        const name = "Henrique";
-        const email = "henrique@email.com";
-        const password = "123456";
+        const role = data.role;
+        const name = data.name;
+        const email = data.email;
+        const password = data.password;
 
-        const hashedPassword = await bcrypt.hash(password, 10);
 
         await prisma.user.create({
             data: {
                 role: role,
                 name: name,
                 email: email,
-                password: hashedPassword
+                password: password
             },
         });
+
+        return null;
+
     } catch (error) {
         console.error("Erro ao criar usuário:", error);
+        return null;
     }
 }
 
@@ -81,6 +83,35 @@ export async function pegarTodosEventos() {
         return eventos;
     } catch (error) {
         console.error("Erro ao buscar eventos:", error);
+        return [];
+    }
+}
+
+//Função para pegar apenas as datas de até 6 meses dos eventos do banco de dados
+export async function pegarDatas() {
+    try {
+        const hoje = new Date();
+        hoje.setHours(0, 0, 0, 0);
+
+        const seisMesesDepois = new Date();
+        seisMesesDepois.setMonth(seisMesesDepois.getMonth() + 6);
+
+        const datas = await prisma.event.findMany({
+            where: {
+                start: {
+                    gte: hoje,
+                    lte: seisMesesDepois,
+                },
+            },
+            select: {
+                start: true,
+                end: true,
+            },
+        });
+
+        return datas;
+    } catch (error) {
+        console.error("Erro ao buscar datas:", error);
         return [];
     }
 }

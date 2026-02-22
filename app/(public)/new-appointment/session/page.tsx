@@ -1,11 +1,13 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { createPortal } from "react-dom";
 import { useSearchParams } from "next/navigation";
 import { ToastContainer, useToast } from "@/components/toast";
 import ConfirmacaoModal from "@/components/ConfirmModal";
 
+
+import { SessionSlot } from "@/app/types/appointment";
+import { SessionCard } from "@/components/SessionCard";
 
 // ─── Data ─────────────────────────────────────────────────────────────────────
 
@@ -18,284 +20,16 @@ const SERVICES_MAP: Record<string, { label: string; tag: string; duration: numbe
     "desenv-pessoal": { label: "Desenv. Pessoal", tag: "Crescimento", duration: 75, color: "#f59e0b" },
 };
 
-const MESES = ["Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"];
-const DIAS_HDR = ["D", "S", "T", "Q", "Q", "S", "S"];
-const HORARIOS = [
-    "07:00", "07:30", "08:00", "08:30", "09:00", "09:30",
-    "10:00", "10:30", "11:00", "11:30", "13:00", "13:30",
-    "14:00", "14:30", "15:00", "15:30", "16:00", "16:30",
-    "17:00", "17:30", "18:00", "18:30", "19:00", "19:30",
-];
+const HORARIOS =
 
-// ─── Helpers ──────────────────────────────────────────────────────────────────
 
-function isBeforeToday(d: Date) {
-    const t = new Date(); t.setHours(0, 0, 0, 0);
-    const c = new Date(d); c.setHours(0, 0, 0, 0);
-    return c < t;
-}
-function isSameDay(a: Date, b: Date) {
-    return a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate();
-}
-function fmtShort(d: Date) { return `${d.getDate()} ${MESES[d.getMonth()].slice(0, 3)}`; }
-function fmtFull(d: Date) { return `${d.getDate()} de ${MESES[d.getMonth()]}`; }
-
-// ─── Types ────────────────────────────────────────────────────────────────────
-
-interface SessionSlot { id: number; date: Date | null; time: string | null; }
-interface FloatPos { top: number; left: number; }
-
-// ─── usePortalDropdown ────────────────────────────────────────────────────────
-// Hook que gerencia um dropdown renderizado via portal no document.body.
-// Posição calculada no momento do clique via getBoundingClientRect do botão.
-
-function usePortalDropdown() {
-    const [pos, setPos] = useState<FloatPos | null>(null);
-
-    const open = (btn: HTMLButtonElement) => {
-        const r = btn.getBoundingClientRect();
-        // position:fixed usa coordenadas de viewport — getBoundingClientRect já devolve isso
-        setPos({ top: r.bottom + 6, left: r.left });
-    };
-
-    const close = () => setPos(null);
-    const toggle = (btn: HTMLButtonElement) => pos ? close() : open(btn);
-
-    return { pos, open, close, toggle, isOpen: pos !== null };
-}
-
-// ─── Portal wrapper ───────────────────────────────────────────────────────────
-
-function DropdownPortal({ pos, onClose, children }: {
-    pos: FloatPos;
-    onClose: () => void;
-    children: React.ReactNode;
-}) {
-    const panelRef = useRef<HTMLDivElement>(null);
-
-    useEffect(() => {
-        const handler = (e: MouseEvent) => {
-            if (panelRef.current && !panelRef.current.contains(e.target as Node)) {
-                onClose();
-            }
-        };
-        // delay para não fechar no mesmo click que abre
-        const t = setTimeout(() => document.addEventListener("mousedown", handler), 10);
-        return () => { clearTimeout(t); document.removeEventListener("mousedown", handler); };
-    }, [onClose]);
-
-    return createPortal(
-        <div
-            ref={panelRef}
-            style={{
-                position: "fixed",
-                top: pos.top,
-                left: pos.left,
-                zIndex: 99999,
-            }}
-        >
-            {children}
-        </div>,
-        document.body
-    );
-}
-
-// ─── MiniCalendar ─────────────────────────────────────────────────────────────
-
-function MiniCalendar({ accentColor, selected, onSelect }: {
-    accentColor: string;
-    selected: Date | null;
-    onSelect: (d: Date) => void;
-}) {
-    const today = new Date();
-    const [year, setYear] = useState(today.getFullYear());
-    const [month, setMonth] = useState(today.getMonth());
-
-    const firstDay = new Date(year, month, 1).getDay();
-    const daysInMonth = new Date(year, month + 1, 0).getDate();
-    const cells: (number | null)[] = [
-        ...Array(firstDay).fill(null),
-        ...Array.from({ length: daysInMonth }, (_, i) => i + 1),
+    [
+        "07:00", "07:30", "08:00", "08:30", "09:00", "09:30",
+        "10:00", "10:30", "11:00", "11:30", "13:00", "13:30",
+        "14:00", "14:30", "15:00", "15:30", "16:00", "16:30",
+        "17:00", "17:30", "18:00", "18:30", "19:00", "19:30",
     ];
-    while (cells.length % 7 !== 0) cells.push(null);
 
-    const prev = () => { if (month === 0) { setMonth(11); setYear(y => y - 1); } else setMonth(m => m - 1); };
-    const next = () => { if (month === 11) { setMonth(0); setYear(y => y + 1); } else setMonth(m => m + 1); };
-
-    return (
-        <div className="select-none w-60">
-            <div className="flex items-center justify-between mb-3">
-                <button onClick={prev} className="w-7 h-7 rounded-lg bg-gray-100 hover:bg-gray-200 flex items-center justify-center text-gray-500 transition-colors">‹</button>
-                <span className="text-xs font-bold text-gray-700" style={{ fontFamily: "'Syne',sans-serif" }}>
-                    {MESES[month].slice(0, 3)} {year}
-                </span>
-                <button onClick={next} className="w-7 h-7 rounded-lg bg-gray-100 hover:bg-gray-200 flex items-center justify-center text-gray-500 transition-colors">›</button>
-            </div>
-            <div className="grid grid-cols-7 mb-1">
-                {DIAS_HDR.map((d, i) => (
-                    <div key={i} className="text-center text-[9px] font-bold py-0.5" style={{ color: accentColor + "99" }}>{d}</div>
-                ))}
-            </div>
-            <div className="grid grid-cols-7 gap-0.5">
-                {cells.map((day, i) => {
-                    if (!day) return <div key={i} className="aspect-square" />;
-                    const d = new Date(year, month, day);
-                    const past = isBeforeToday(d);
-                    const isTod = isSameDay(d, today);
-                    const isSel = selected ? isSameDay(d, selected) : false;
-                    return (
-                        <button key={i} disabled={past} onClick={() => onSelect(d)}
-                            className={`aspect-square rounded-lg text-[11px] font-semibold flex items-center justify-center transition-all
-                ${past ? "text-gray-200 cursor-not-allowed" :
-                                    isSel ? "text-white scale-110 shadow-sm" :
-                                        isTod ? "font-bold" :
-                                            "text-gray-600 hover:bg-gray-100 hover:scale-105"}`}
-                            style={isSel ? { background: accentColor } : isTod ? { color: accentColor, outline: `1.5px solid ${accentColor}44`, borderRadius: "8px" } : {}}
-                        >{day}</button>
-                    );
-                })}
-            </div>
-        </div>
-    );
-}
-
-// ─── SessionCard ──────────────────────────────────────────────────────────────
-
-function SessionCard({ slot, index, accentColor, duration, onUpdate, onRemove, canRemove }: {
-    slot: SessionSlot;
-    index: number;
-    accentColor: string;
-    duration: number;
-    onUpdate: (p: Partial<SessionSlot>) => void;
-    onRemove: () => void;
-    canRemove: boolean;
-}) {
-    const cal = usePortalDropdown();
-    const time = usePortalDropdown();
-    const isComplete = slot.date !== null && slot.time !== null;
-
-    return (
-        <div>
-            <div
-                className="bg-white rounded-2xl border transition-all duration-200"
-                style={isComplete
-                    ? { borderColor: accentColor + "33", boxShadow: `0 4px 20px ${accentColor}12` }
-                    : { borderColor: "#f3f4f6" }}
-            >
-                {/* accent bar */}
-                <div className="absolute left-0 top-3 bottom-3 w-0.75 rounded-r-full"
-                    style={{ background: isComplete ? accentColor : "#e5e7eb" }} />
-
-                <div className="pl-5 pr-4 py-4">
-                    {/* header */}
-                    <div className="flex items-center justify-between mb-3">
-                        <div className="flex items-center gap-2.5">
-                            <div className="w-7 h-7 rounded-lg flex items-center justify-center text-xs font-black"
-                                style={{ background: accentColor + "15", color: accentColor, fontFamily: "'Syne',sans-serif" }}>
-                                {index + 1}
-                            </div>
-                            <span className="text-sm font-bold text-gray-800" style={{ fontFamily: "'Syne',sans-serif" }}>
-                                Sessão {index + 1}
-                            </span>
-                            {isComplete && (
-                                <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full"
-                                    style={{ background: accentColor + "15", color: accentColor }}>✓ Definida</span>
-                            )}
-                        </div>
-                        {canRemove && (
-                            <button onClick={onRemove}
-                                className="w-6 h-6 rounded-full bg-gray-100 hover:bg-red-50 text-gray-300 hover:text-red-400 flex items-center justify-center text-[10px] transition-colors">✕</button>
-                        )}
-                    </div>
-
-                    {/* pickers */}
-                    <div className="flex gap-2">
-                        {/* DATE */}
-                        <button
-                            onClick={e => { time.close(); cal.toggle(e.currentTarget); }}
-                            className="flex-1 flex items-center gap-2 px-3 py-2.5 rounded-xl border text-xs font-semibold transition-all"
-                            style={cal.isOpen
-                                ? { color: accentColor, borderColor: accentColor, background: accentColor + "08" }
-                                : { borderColor: "#f3f4f6", background: "#f9fafb", color: "#6b7280" }}
-                        >
-                            <svg className="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5" />
-                            </svg>
-                            {slot.date ? fmtShort(slot.date) : "Escolher data"}
-                        </button>
-
-                        {/* TIME */}
-                        <button
-                            onClick={e => { cal.close(); time.toggle(e.currentTarget); }}
-                            className="flex-1 flex items-center gap-2 px-3 py-2.5 rounded-xl border text-xs font-semibold transition-all"
-                            style={time.isOpen
-                                ? { color: accentColor, borderColor: accentColor, background: accentColor + "08" }
-                                : { borderColor: "#f3f4f6", background: "#f9fafb", color: "#6b7280" }}
-                        >
-                            <svg className="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
-                            </svg>
-                            {slot.time ?? "Horário"}
-                        </button>
-                    </div>
-
-                    {/* completion summary */}
-                    {isComplete && (
-                        <div className="mt-3 flex items-center gap-1.5 text-xs text-gray-400">
-                            <svg className="w-3 h-3" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                            </svg>
-                            <span>
-                                <span className="font-semibold text-gray-600">{fmtFull(slot.date!)}</span>
-                                {" "}às{" "}
-                                <span className="font-semibold text-gray-600">{slot.time}</span>
-                            </span>
-                        </div>
-                    )}
-                </div>
-            </div>
-
-            {/* Calendar portal */}
-            {cal.isOpen && cal.pos && (
-                <DropdownPortal pos={cal.pos} onClose={cal.close}>
-                    <div className="bg-white rounded-2xl border border-gray-100 p-4"
-                        style={{ boxShadow: "0 20px 60px rgba(0,0,0,0.15), 0 0 0 1px rgba(0,0,0,0.05)" }}>
-                        <MiniCalendar
-                            accentColor={accentColor}
-                            selected={slot.date}
-                            onSelect={d => { onUpdate({ date: d }); cal.close(); }}
-                        />
-                    </div>
-                </DropdownPortal>
-            )}
-
-            {/* Time portal */}
-            {time.isOpen && time.pos && (
-                <DropdownPortal pos={time.pos} onClose={time.close}>
-                    <div className="bg-white rounded-2xl border border-gray-100 p-3"
-                        style={{ width: 200, boxShadow: "0 20px 60px rgba(0,0,0,0.15), 0 0 0 1px rgba(0,0,0,0.05)" }}>
-                        <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-2.5 px-1">
-                            {duration} min · horário
-                        </p>
-                        <div className="grid grid-cols-3 gap-1 max-h-56 overflow-y-auto">
-                            {HORARIOS.map(h => (
-                                <button key={h} onClick={() => { onUpdate({ time: h }); time.close(); }}
-                                    className="py-2 rounded-xl text-[11px] font-bold transition-all hover:scale-105"
-                                    style={slot.time === h
-                                        ? { background: accentColor, color: "white" }
-                                        : { background: "#f9fafb", color: "#374151" }}>
-                                    {h}
-                                </button>
-                            ))}
-                        </div>
-                    </div>
-                </DropdownPortal>
-            )}
-        </div>
-    );
-}
-
-// ─── Main Page ────────────────────────────────────────────────────────────────
 
 export default function AgendarPage({
     onBack,
@@ -332,6 +66,12 @@ export default function AgendarPage({
     const [isLoading, setIsLoading] = useState(false);
 
     const [modalAberto, setModalAberto] = useState(false);
+
+    const [horarios, setHorarios] = useState<Record<string, string[]>>({});
+
+    useEffect(() => {
+        TakeDates();
+    }, []);
 
     async function handleSubmit(dados: any) {
         if (!allDone) return;
@@ -377,8 +117,27 @@ export default function AgendarPage({
         }
     }
 
+    async function TakeDates() {
+        try {
+            const res = await fetch("/api/new-appointment/session-dates", {
+                method: "GET",
+                headers: { "Content-type": "application/json" },
+            });
 
+            if (!res.ok) {
+                console.error("Erro ao buscar datas:", res.statusText);
+                return;
+            }
 
+            const data = await res.json();
+
+            setHorarios(data.availableTimes);
+
+        } catch (error) {
+            console.error("Erro na requisição:", error);
+        }
+
+    }
 
     return (
         <>
@@ -482,6 +241,7 @@ export default function AgendarPage({
                                     onUpdate={patch => updateSlot(slot.id, patch)}
                                     onRemove={() => removeSlot(slot.id)}
                                     canRemove={slots.length > 1}
+                                    horarios={horarios}
                                 />
                             </div>
                         ))}

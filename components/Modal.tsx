@@ -9,7 +9,7 @@ export type CalendarEvent = {
     end: Date;
     description?: string;
     color: string;
-    status: "confirmado" | "pendente";
+    status: string;
 };
 
 

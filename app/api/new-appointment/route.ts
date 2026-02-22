@@ -45,20 +45,11 @@ export async function POST(request: Request) {
             await criarEvento(data);
         }
 
-
-
-
-
-
-
-
         const response = NextResponse.json({
             ok: true,
             message: "Login realizado com sucesso!",
             status: 200,
         });
-
-
 
         return response;
     } catch (error) {

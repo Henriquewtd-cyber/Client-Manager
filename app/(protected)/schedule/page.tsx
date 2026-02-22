@@ -7,7 +7,8 @@ import "react-big-calendar/lib/css/react-big-calendar.css";
 import "./calendar-theme.css";
 
 import { EventModal } from "@/components/Modal";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { pegarTodosEventos } from "@/app/services/user.service";
 
 
 dayjs.locale("pt-br");
@@ -24,23 +25,8 @@ export type CalendarEvent = {
   end: Date;
   description?: string;
   color: string;
-  status: "confirmado" | "pendente";
+  status: string;
 };
-
-
-const events: CalendarEvent[] = [
-  {
-    id: "1",
-    title: "Reunião Cliente",
-    nomeCliente: "João Silva",
-    telefone: "(11) 98765-4321",
-    start: new Date(2026, 1, 19, 14, 0),
-    end: new Date(2026, 1, 19, 15, 0),
-    description: "Discussão sobre contrato",
-    status: "confirmado",
-    color: "#34d399", // verde
-  },
-];
 
 const messages = {
   today: "Hoje",
@@ -93,6 +79,8 @@ export default function CalendarComponent() {
   const [selectedEvent, setSelectedEvent] = useState<CalendarEvent | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
+  const [events, setEvents] = useState<CalendarEvent[]>([]);
+
   function handleOpen(event: CalendarEvent) {
     setSelectedEvent(event);
     setIsModalOpen(true);
@@ -102,6 +90,46 @@ export default function CalendarComponent() {
     setIsModalOpen(false);
     setSelectedEvent(null);
   }
+
+  async function fetchEvents(): Promise<CalendarEvent[]> {
+    try {
+      const res = await fetch("/api/schedule", {
+        method: "GET",
+        headers: { "Content-type": "application/json" },
+      });
+
+
+      if (!res.ok) {
+        console.error("Erro ao buscar eventos:", res.statusText);
+        return [];
+      }
+
+      const data = await res.json();
+      console.log("Resposta da API:", data);
+      return data ?? [];
+    } catch (error) {
+      console.error("Erro ao buscar eventos:", error);
+      return [];
+    }
+  }
+
+  useEffect(() => {
+    fetchEvents().then(fetchedEvents => {
+      console.log("Eventos buscados:", fetchedEvents);
+      const formattedEvents = fetchedEvents.map((event) => ({
+        id: event.id,
+        title: event.title,
+        nomeCliente: event.nomeCliente,
+        telefone: event.telefone,
+        description: event.description ?? undefined,
+        status: event.status,
+        start: new Date(event.start),
+        end: new Date(event.end),
+        color: event.color,
+      }));
+      setEvents(formattedEvents);
+    });
+  }, []);
 
   return (
     <div className="h-[80vh] bg-white p-6 rounded-xl shadow-sm">
