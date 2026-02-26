@@ -3,11 +3,11 @@
 import { useState, useRef, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
 import { ToastContainer, useToast } from "@/components/toast";
-import ConfirmacaoModal from "@/components/ConfirmModal";
+import ConfirmacaoModal from "@/components/session/ConfirmModal";
 
 
 import { SessionSlot } from "@/app/types/appointment";
-import { SessionCard } from "@/components/SessionCard";
+import { SessionCard } from "@/components/session/SessionCard";
 
 // ─── Data ─────────────────────────────────────────────────────────────────────
 

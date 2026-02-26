@@ -115,3 +115,102 @@ export async function pegarDatas() {
         return [];
     }
 }
+
+//Função para verificar a disponibilidade de um horário para um evento
+
+export async function verificarDisponibilidade(start: Date, end: Date): Promise<boolean> {
+    try {
+        const eventos = await prisma.event.findMany({
+            where: {
+                OR: [
+                    {
+                        start: {
+                            lte: start,
+                            gte: end,
+                        },
+                    },
+                    {
+                        end: {
+                            lte: start,
+                            gte: end,
+                        },
+                    },
+                ],
+            },
+        });
+
+        return eventos.length === 0;
+    } catch (error) {
+        console.error("Erro ao verificar disponibilidade:", error);
+        return false;
+    }
+}
+
+//Função para deletar um evento do banco de dados
+export async function deletarEvento(id: string) {
+    try {
+        await prisma.event.delete({
+            where: {
+                id: id,
+            },
+        });
+    } catch (error) {
+        console.error("Erro ao deletar evento:", error);
+    }
+}
+
+//Função para confirmar um evento do banco de dados
+export async function confirmarEvento(id: string, status: string) {
+    try {
+        await prisma.event.update({
+            where: {
+                id: id,
+            },
+            data: {
+                status: status,
+            },
+        });
+    } catch (error) {
+        console.error("Erro ao confirmar evento:", error);
+    }
+}
+
+//Função para editar a data de um evento do banco de dados
+export async function editarEvento(id: string, newStart: Date, newEnd: Date) {
+    try {
+
+        if (!await verificarDisponibilidade(newStart, newEnd)) {
+            throw new Error("Horário indisponível para agendamento.");
+        }
+        await prisma.event.update({
+            where: {
+                id: id,
+            },
+            data: {
+                start: newStart,
+                end: newEnd,
+            },
+        });
+
+
+    } catch (error) {
+        console.error("Erro ao editar evento:", error);
+    }
+}
+
+//Função para achar o id de um evento pendente no banco de dados
+export async function acharIdEventoPendente(estado: string, telefone: string): Promise<string | null> {
+    try {
+        const evento = await prisma.event.findFirst({
+            where: {
+                status: estado,
+                telefone: telefone,
+            },
+        });
+
+        return evento ? evento.id : null;
+    } catch (error) {
+        console.error("Erro ao achar id do evento:", error);
+        return null;
+    }
+}

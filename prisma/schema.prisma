@@ -20,7 +20,7 @@ model Event {
   id           String   @id @default(auto()) @map("_id") @db.ObjectId
   title        String
   nomeCliente  String
-  telefone     String
+  telefone     String   
   start        DateTime
   end          DateTime
   description  String?

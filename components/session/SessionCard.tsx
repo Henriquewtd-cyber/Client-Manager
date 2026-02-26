@@ -2,8 +2,8 @@ import { useState } from "react";
 import { SessionSlot } from "@/app/types/appointment";
 import { usePortalDropdown } from "@/app/hooks/UseDropdownPortal";
 import { fmtFull, fmtShort } from "@/app/lib/DateHelpers";
-import { DropdownPortal } from "@/components/DropdownPortal";
-import { MiniCalendar } from "@/components/MiniCalendar";
+import { DropdownPortal } from "@/components/session/DropdownPortal";
+import { MiniCalendar } from "@/components/session/MiniCalendar";
 
 export function SessionCard({ slot, index, accentColor, duration, onUpdate, onRemove, canRemove, horarios }: {
     slot: SessionSlot;
