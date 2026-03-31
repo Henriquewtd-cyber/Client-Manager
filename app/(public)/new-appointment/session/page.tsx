@@ -148,13 +148,15 @@ export default function AgendarPage({
         .fu { animation:fadeUp 0.4s ease both; }
       `}</style>
 
-            <div className="min-h-screen bg-white bg-linear-to-tr from-white to-blue-50">
+            <div className="min-h-screen bg-white bg-linear-to-tr from-white to-blue-50 select-none">
                 <ConfirmacaoModal
                     isOpen={modalAberto}
                     onClose={() => setModalAberto(false)}
                     onConfirmar={handleSubmit}
                     numeroConsultas={slots.filter(s => s.date && s.time).length}
                     valorTotal={total}
+                    cor1={accentColor}
+                    cor2={accentColor + "15"}
                 />
 
                 <ToastContainer toasts={toasts} removeToast={removeToast} />
@@ -163,7 +165,7 @@ export default function AgendarPage({
                 <div className="sticky top-0 z-10 bg-white/90 backdrop-blur-sm border-b border-gray-100">
                     <div className="max-w-2xl mx-auto px-5 py-3.5 flex items-center justify-between">
                         <button onClick={onBack ?? (() => window.history.back())}
-                            className="flex items-center gap-1.5 text-sm text-gray-400 hover:text-gray-700 transition-colors font-medium">
+                            className="cursor-pointer flex items-center gap-1.5 text-sm text-gray-400 hover:text-gray-700 transition-colors font-medium">
                             <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
                             </svg>
@@ -219,7 +221,7 @@ export default function AgendarPage({
                         <div className="flex items-center gap-2 p-3 bg-gray-50 rounded-2xl">
                             <button onClick={() => slots.length > 1 && removeSlot(slots[slots.length - 1].id)}
                                 disabled={slots.length <= 1}
-                                className="w-9 h-9 rounded-xl bg-white border border-gray-200 flex items-center justify-center text-gray-500 text-xl font-light hover:bg-gray-50 transition-all disabled:opacity-25 disabled:cursor-not-allowed shadow-sm">−</button>
+                                className="w-9 h-9 rounded-xl bg-white border border-gray-200 flex items-center justify-center text-gray-500 text-xl font-light hover:bg-gray-50 transition-all disabled:opacity-25 disabled:cursor-not-allowed shadow-sm cursor-pointer">−</button>
                             <div className="flex-1 flex items-center justify-center gap-1.5">
                                 {Array.from({ length: Math.min(slots.length, 10) }).map((_, i) => (
                                     <div key={i} className="w-2 h-2 rounded-full transition-all"
@@ -228,7 +230,7 @@ export default function AgendarPage({
                                 {slots.length > 10 && <span className="text-xs text-gray-400 font-semibold">+{slots.length - 10}</span>}
                             </div>
                             <button onClick={addSlot} disabled={slots.length >= 20}
-                                className="w-9 h-9 rounded-xl bg-white border border-gray-200 flex items-center justify-center text-gray-500 text-xl font-light hover:bg-gray-50 transition-all disabled:opacity-25 disabled:cursor-not-allowed shadow-sm">+</button>
+                                className="w-9 h-9 rounded-xl bg-white border border-gray-200 flex items-center justify-center text-gray-500 text-xl font-light hover:bg-gray-50 transition-all disabled:opacity-25 disabled:cursor-not-allowed shadow-sm cursor-pointer">+</button>
                         </div>
                     </div>
 
@@ -248,7 +250,7 @@ export default function AgendarPage({
                     </div>
 
                     <button onClick={addSlot} disabled={slots.length >= 20}
-                        className="w-full py-3 rounded-2xl border-2 border-dashed text-sm font-semibold transition-all hover:border-solid disabled:opacity-30 disabled:cursor-not-allowed"
+                        className="cursor-pointer w-full py-3 rounded-2xl border-2 border-dashed text-sm font-semibold transition-all hover:border-solid disabled:opacity-30 disabled:cursor-not-allowed"
                         style={{ borderColor: accentColor + "44", color: accentColor }}>
                         + Adicionar sessão
                     </button>
@@ -290,7 +292,7 @@ export default function AgendarPage({
                                 </span>
                             </div>
                         </div>
-                        <button disabled={!allDone} onClick={() => { onConfirm?.(slots, total); setModalAberto(true); }} className="w-full py-4 rounded-2xl text-sm font-bold text-white transition-all duration-200 hover:-translate-y-0.5 active:translate-y-0 disabled:opacity-30 disabled:cursor-not-allowed disabled:translate-y-0" style={{ background: accentColor }}>
+                        <button disabled={!allDone} onClick={() => { onConfirm?.(slots, total); setModalAberto(true); }} className="cursor-pointer w-full py-4 rounded-2xl text-sm font-bold text-white transition-all duration-200 hover:-translate-y-0.5 active:translate-y-0 disabled:opacity-30 disabled:cursor-not-allowed disabled:translate-y-0" style={{ background: accentColor }}>
                             {allDone
                                 ? `Confirmar ${slots.length} ${slots.length === 1 ? "sessão" : "sessões"} · R$ ${total},00`
                                 : `Defina mais ${slots.length - completedCount} ${slots.length - completedCount === 1 ? "sessão" : "sessões"} para continuar`

@@ -1,6 +1,7 @@
 
 import { NextResponse } from "next/server";
 import { criarEvento, pegarTodosEventos } from "@/app/services/user.service";
+import { criarConfirmarJob, criarLembreteJob } from "@/app/services/job.service";
 
 export async function POST(request: Request) {
 
@@ -40,14 +41,22 @@ export async function POST(request: Request) {
                 description: dados.descricao,
                 status: "Pendente",
             };
-            console.log(data);
 
-            await criarEvento(data);
+            const evento = await criarEvento(data);
+
+            if (!evento) {
+                throw new Error("Nenhum evento encontrado");
+            }
+
+            Promise.allSettled([
+                criarConfirmarJob(evento.id, data.start, dados.telefone, dados.nome),
+                criarLembreteJob(evento.id, data.start, dados.telefone, dados.nome),
+            ]);
         }
 
         const response = NextResponse.json({
             ok: true,
-            message: "Login realizado com sucesso!",
+            message: "Agendamento realizado com sucesso!",
             status: 200,
         });
 
@@ -55,7 +64,7 @@ export async function POST(request: Request) {
     } catch (error) {
         console.error(error);
         return NextResponse.json(
-            { error: "Erro ao logar usuário." },
+            { error: "Erro ao agendar horário." },
             { status: 500 }
         );
     }

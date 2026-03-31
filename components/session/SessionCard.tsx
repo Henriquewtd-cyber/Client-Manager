@@ -49,7 +49,7 @@ export function SessionCard({ slot, index, accentColor, duration, onUpdate, onRe
                         </div>
                         {canRemove && (
                             <button onClick={onRemove}
-                                className="w-6 h-6 rounded-full bg-gray-100 hover:bg-red-50 text-gray-300 hover:text-red-400 flex items-center justify-center text-[10px] transition-colors">✕</button>
+                                className="cursor-pointer w-6 h-6 rounded-full bg-gray-100 hover:bg-red-50 text-gray-300 hover:text-red-400 flex items-center justify-center text-[10px] transition-colors">✕</button>
                         )}
                     </div>
 
@@ -58,7 +58,7 @@ export function SessionCard({ slot, index, accentColor, duration, onUpdate, onRe
                         {/* DATE */}
                         <button
                             onClick={e => { time.close(); cal.toggle(e.currentTarget); }}
-                            className="flex-1 flex items-center gap-2 px-3 py-2.5 rounded-xl border text-xs font-semibold transition-all"
+                            className="cursor-pointer flex-1 flex items-center gap-2 px-3 py-2.5 rounded-xl border text-xs font-semibold transition-all"
                             style={cal.isOpen
                                 ? { color: accentColor, borderColor: accentColor, background: accentColor + "08" }
                                 : { borderColor: "#f3f4f6", background: "#f9fafb", color: "#6b7280" }}
@@ -72,7 +72,7 @@ export function SessionCard({ slot, index, accentColor, duration, onUpdate, onRe
                         {/* TIME */}
                         <button
                             onClick={e => { cal.close(); time.toggle(e.currentTarget); }}
-                            className="flex-1 flex items-center gap-2 px-3 py-2.5 rounded-xl border text-xs font-semibold transition-all"
+                            className="cursor-pointer flex-1 flex items-center gap-2 px-3 py-2.5 rounded-xl border text-xs font-semibold transition-all"
                             style={time.isOpen
                                 ? { color: accentColor, borderColor: accentColor, background: accentColor + "08" }
                                 : { borderColor: "#f3f4f6", background: "#f9fafb", color: "#6b7280" }}
@@ -117,22 +117,47 @@ export function SessionCard({ slot, index, accentColor, duration, onUpdate, onRe
             {/* Time portal */}
             {time.isOpen && time.pos && (
                 <DropdownPortal pos={time.pos} onClose={time.close}>
-                    <div className="bg-white rounded-2xl border border-gray-100 p-3"
-                        style={{ width: 200, boxShadow: "0 20px 60px rgba(0,0,0,0.15), 0 0 0 1px rgba(0,0,0,0.05)" }}>
+                    <div
+                        className="bg-white rounded-2xl border border-gray-100 p-3"
+                        style={{ width: 200, boxShadow: "0 20px 60px rgba(0,0,0,0.15), 0 0 0 1px rgba(0,0,0,0.05)" }}
+                    >
                         <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-2.5 px-1">
                             {duration} min · horário
                         </p>
-                        <div className="grid grid-cols-3 gap-1 max-h-56 overflow-y-auto">
-                            {horarios[slot.date?.toISOString().split("T")[0] ?? ""]?.map(h => (
-                                <button key={h} onClick={() => { onUpdate({ time: h }); time.close(); }}
-                                    className="py-2 rounded-xl text-[11px] font-bold transition-all hover:scale-105"
-                                    style={slot.time === h
-                                        ? { background: accentColor, color: "white" }
-                                        : { background: "#f9fafb", color: "#374151" }}>
-                                    {h}
-                                </button>
-                            ))}
-                        </div>
+
+                        {/* 1 — Nenhum dia selecionado */}
+                        {!slot.date ? (
+                            <div className="flex flex-col items-center gap-1.5 py-4 text-center">
+                                <span className="text-2xl">📅</span>
+                                <p className="text-[11px] font-semibold text-gray-500">Escolha o dia primeiro</p>
+                                <p className="text-[10px] text-gray-400">Selecione uma data para ver os horários disponíveis</p>
+                            </div>
+
+                            /* 2 — Dia selecionado, mas sem horários */
+                        ) : !horarios?.[slot.date.toISOString().split("T")[0]]?.length ? (
+                            <div className="flex flex-col items-center gap-1.5 py-4 text-center">
+                                <span className="text-2xl">🚫</span>
+                                <p className="text-[11px] font-semibold text-gray-500">Sem horários disponíveis</p>
+                                <p className="text-[10px] text-gray-400">Nenhum horário livre neste dia</p>
+                            </div>
+
+                            /* 3 — Normal */
+                        ) : (
+                            <div className="grid grid-cols-3 gap-1 max-h-56 overflow-y-auto">
+                                {horarios[slot.date.toISOString().split("T")[0]].map(h => (
+                                    <button
+                                        key={h}
+                                        onClick={() => { onUpdate({ time: h }); time.close(); }}
+                                        className="cursor-pointer py-2 rounded-xl text-[11px] font-bold transition-all hover:scale-105"
+                                        style={slot.time === h
+                                            ? { background: accentColor, color: "white" }
+                                            : { background: "#f9fafb", color: "#374151" }}
+                                    >
+                                        {h}
+                                    </button>
+                                ))}
+                            </div>
+                        )}
                     </div>
                 </DropdownPortal>
             )}

@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { FaUserCircle, FaWhatsapp } from "react-icons/fa";
+
 // ── Dados dos serviços ──────────────────────────────────────────────────────
 
 const SERVICES = [
@@ -106,10 +108,27 @@ export default function AgendamentoPage() {
         .fade-up { animation: fadeUp 0.45s ease both; }
       `}</style>
 
-      <main className="min-h-screen bg-linear-to-tr from-white to-blue-50">
+      <main className="min-h-screen bg-linear-to-tr from-white to-blue-50 select-none">
 
         {/* ── Hero ─────────────────────────────────────────────── */}
         <section className="max-w-5xl mx-auto px-5 sm:px-8 pt-16 pb-12">
+          {/* ── Icons ─────────────────────────────────────────────── */}
+
+          <a //Whatsapp floating button
+            href="https://wa.me/5511999999999"
+            target="_blank"
+            className="fixed bottom-22 right-6 z-10 bg-green-500 w-14 h-14 rounded-full flex items-center justify-center text-white text-2xl shadow-lg"
+          >
+            <FaWhatsapp size={40} />
+          </a>
+
+          <Link href="http://localhost:3000/login"><div  //Login floating button
+            className="fixed bottom-6 right-6 z-10 bg-black w-14 h-14 rounded-full flex items-center justify-center text-white text-2xl shadow-lg"
+          >
+            <FaUserCircle className="w-14 h-14" />
+
+          </div>
+          </Link>
 
           {/* eyebrow */}
           <div className="flex items-center gap-2.5 mb-6">
@@ -203,7 +222,7 @@ export default function AgendamentoPage() {
                     >
                       <button
                         onClick={() => { }}
-                        className="w-full py-3 rounded-2xl text-sm font-bold text-white transition-all duration-150 hover:opacity-90 hover:-translate-y-0.5 active:translate-y-0"
+                        className="w-full py-3 rounded-2xl text-sm font-bold text-white transition-all duration-150 hover:opacity-90 hover:-translate-y-0.5 active:translate-y-0 cursor-pointer"
                         style={{ background: svc.color }}
                       >
                         Agendar sessão

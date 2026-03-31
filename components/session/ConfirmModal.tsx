@@ -8,6 +8,8 @@ interface ConfirmacaoModalProps {
     onConfirmar: (dados: DadosConsulta) => void;
     numeroConsultas: number;
     valorTotal: number;
+    cor1: string;
+    cor2: string;
 }
 
 interface DadosConsulta {
@@ -23,10 +25,12 @@ export default function ConfirmacaoModal({
     onConfirmar,
     numeroConsultas,
     valorTotal,
+    cor1,
+    cor2,
 }: ConfirmacaoModalProps) {
     const [nome, setNome] = useState("");
     const [telefone, setTelefone] = useState("");
-    const [modalidade, setModalidade] = useState<"presencial" | "online" | "misto">("presencial");
+    const [modalidade, setModalidade] = useState<"presencial" | "online" | "misto">("online");
     const [descricao, setDescricao] = useState("");
     const [errors, setErrors] = useState<{ nome?: string; telefone?: string }>({});
 
@@ -62,31 +66,29 @@ export default function ConfirmacaoModal({
                 className="relative w-full max-w-md rounded-2xl overflow-hidden shadow-2xl"
                 style={{ background: "#faf7f4" }}
             >
+                {/* Barra top */}
                 <div
                     className="h-2 w-full"
-                    style={{ background: "linear-gradient(90deg, #c8a96e, #e8c99a, #c8a96e)" }}
+                    style={{ background: `linear-gradient(90deg, ${cor1}, ${cor2}, ${cor1})` }}
                 />
 
-                <div className="px-8 py-7">
+                <div className="px-8 py-7 bg-white">
+
                     {/* Header */}
                     <div className="flex items-start justify-between mb-6">
                         <div>
-                            <p
-                                className="text-xs uppercase tracking-widest font-semibold mb-1"
-                                style={{ color: "#c8a96e", fontFamily: "'Georgia', serif" }}
-                            >
+                            <p className="text-xs uppercase tracking-widest font-semibold mb-1 text-gray-400"
+                                style={{ fontFamily: "'Georgia', serif" }}>
                                 Confirmar Agendamento
                             </p>
-                            <h2
-                                className="text-2xl font-bold leading-tight"
-                                style={{ color: "#2c1f0e", fontFamily: "'Georgia', serif" }}
-                            >
+                            <h2 className="text-2xl font-bold leading-tight text-gray-900"
+                                style={{ fontFamily: "'Georgia', serif" }}>
                                 Seus dados
                             </h2>
                         </div>
                         <button
                             onClick={onClose}
-                            className="mt-1 text-stone-400 hover:text-stone-600 transition-colors text-xl leading-none"
+                            className="cursor-pointer mt-1 text-stone-400 hover:text-stone-600 transition-colors text-xl leading-none"
                         >
                             ✕
                         </button>
@@ -95,24 +97,20 @@ export default function ConfirmacaoModal({
                     {/* Resumo */}
                     <div
                         className="flex items-center justify-between rounded-xl px-5 py-4 mb-6"
-                        style={{ background: "#f0e8d8", border: "1px solid #e0d0ba" }}
+                        style={{ background: "#f5f5f5", border: "1px solid #e5e5e5" }}
                     >
                         <div className="text-center">
-                            <p className="text-xs text-stone-500 uppercase tracking-wide mb-0.5">Consultas</p>
-                            <p
-                                className="text-2xl font-bold"
-                                style={{ color: "#2c1f0e", fontFamily: "'Georgia', serif" }}
-                            >
+                            <p className="text-xs text-gray-400 uppercase tracking-wide mb-0.5">Consultas</p>
+                            <p className="text-2xl font-bold text-gray-800"
+                                style={{ fontFamily: "'Georgia', serif" }}>
                                 {numeroConsultas}
                             </p>
                         </div>
-                        <div className="h-10 w-px" style={{ background: "#c8a96e", opacity: 0.4 }} />
+                        <div className="h-10 w-px bg-gray-300" />
                         <div className="text-center">
-                            <p className="text-xs text-stone-500 uppercase tracking-wide mb-0.5">Total</p>
-                            <p
-                                className="text-2xl font-bold"
-                                style={{ color: "#c8a96e", fontFamily: "'Georgia', serif" }}
-                            >
+                            <p className="text-xs text-gray-400 uppercase tracking-wide mb-0.5">Total</p>
+                            <p className="text-2xl font-bold text-gray-800"
+                                style={{ fontFamily: "'Georgia', serif" }}>
                                 {valorTotal.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
                             </p>
                         </div>
@@ -120,12 +118,10 @@ export default function ConfirmacaoModal({
 
                     {/* Campos */}
                     <div className="space-y-4 mb-5">
+
                         {/* Nome */}
                         <div>
-                            <label
-                                className="block text-xs font-semibold uppercase tracking-wider mb-1.5"
-                                style={{ color: "#6b4f2a" }}
-                            >
+                            <label className="block text-xs font-semibold uppercase tracking-wider mb-1.5 text-gray-500">
                                 Nome completo
                             </label>
                             <input
@@ -133,17 +129,19 @@ export default function ConfirmacaoModal({
                                 value={nome}
                                 onChange={(e) => setNome(e.target.value)}
                                 placeholder="Seu nome"
-                                className="w-full rounded-lg px-4 py-2.5 text-sm outline-none transition-all"
+                                className="w-full rounded-lg px-4 py-2.5 text-sm text-gray-800 outline-none transition-all"
                                 style={{
                                     background: "#fff",
-                                    border: errors.nome ? "1.5px solid #e05c5c" : "1.5px solid #ddd0bc",
-                                    color: "#2c1f0e",
-                                    fontFamily: "inherit",
+                                    border: errors.nome ? "1.5px solid #e05c5c" : "1.5px solid #e5e5e5",
                                 }}
-                                onFocus={(e) => (e.target.style.border = "1.5px solid #c8a96e")}
-                                onBlur={(e) =>
-                                    (e.target.style.border = errors.nome ? "1.5px solid #e05c5c" : "1.5px solid #ddd0bc")
-                                }
+                                onFocus={(e) => {
+                                    e.target.style.border = `1.5px solid ${cor1}`;
+                                    e.target.style.boxShadow = `0 0 0 3px ${cor1}22`;
+                                }}
+                                onBlur={(e) => {
+                                    e.target.style.border = errors.nome ? "1.5px solid #e05c5c" : "1.5px solid #e5e5e5";
+                                    e.target.style.boxShadow = "none";
+                                }}
                             />
                             {errors.nome && (
                                 <p className="text-xs mt-1" style={{ color: "#e05c5c" }}>{errors.nome}</p>
@@ -152,10 +150,7 @@ export default function ConfirmacaoModal({
 
                         {/* Telefone */}
                         <div>
-                            <label
-                                className="block text-xs font-semibold uppercase tracking-wider mb-1.5"
-                                style={{ color: "#6b4f2a" }}
-                            >
+                            <label className="block text-xs font-semibold uppercase tracking-wider mb-1.5 text-gray-500">
                                 Telefone / WhatsApp
                             </label>
                             <input
@@ -163,17 +158,19 @@ export default function ConfirmacaoModal({
                                 value={telefone}
                                 onChange={(e) => setTelefone(formatarTelefone(e.target.value))}
                                 placeholder="(11) 99999-9999"
-                                className="w-full rounded-lg px-4 py-2.5 text-sm outline-none transition-all"
+                                className="w-full rounded-lg px-4 py-2.5 text-sm text-gray-800 outline-none transition-all"
                                 style={{
                                     background: "#fff",
-                                    border: errors.telefone ? "1.5px solid #e05c5c" : "1.5px solid #ddd0bc",
-                                    color: "#2c1f0e",
-                                    fontFamily: "inherit",
+                                    border: errors.telefone ? "1.5px solid #e05c5c" : "1.5px solid #e5e5e5",
                                 }}
-                                onFocus={(e) => (e.target.style.border = "1.5px solid #c8a96e")}
-                                onBlur={(e) =>
-                                    (e.target.style.border = errors.telefone ? "1.5px solid #e05c5c" : "1.5px solid #ddd0bc")
-                                }
+                                onFocus={(e) => {
+                                    e.target.style.border = `1.5px solid ${cor1}`;
+                                    e.target.style.boxShadow = `0 0 0 3px ${cor1}22`;
+                                }}
+                                onBlur={(e) => {
+                                    e.target.style.border = errors.telefone ? "1.5px solid #e05c5c" : "1.5px solid #e5e5e5";
+                                    e.target.style.boxShadow = "none";
+                                }}
                             />
                             {errors.telefone && (
                                 <p className="text-xs mt-1" style={{ color: "#e05c5c" }}>{errors.telefone}</p>
@@ -182,10 +179,7 @@ export default function ConfirmacaoModal({
 
                         {/* Modalidade */}
                         <div>
-                            <label
-                                className="block text-xs font-semibold uppercase tracking-wider mb-2"
-                                style={{ color: "#6b4f2a" }}
-                            >
+                            <label className="block text-xs font-semibold uppercase tracking-wider mb-2 text-gray-500">
                                 Modalidade
                             </label>
                             <div className="grid grid-cols-3 gap-3">
@@ -194,19 +188,19 @@ export default function ConfirmacaoModal({
                                         key={op}
                                         type="button"
                                         onClick={() => setModalidade(op)}
-                                        className="rounded-xl py-3 text-sm font-semibold capitalize transition-all"
+                                        className="cursor-pointer rounded-xl py-3 text-sm font-semibold capitalize transition-all"
                                         style={
                                             modalidade === op
                                                 ? {
-                                                    background: "#c8a96e",
-                                                    color: "#fff",
-                                                    border: "1.5px solid #c8a96e",
-                                                    boxShadow: "0 2px 8px rgba(200,169,110,0.35)",
+                                                    background: cor2,
+                                                    color: "#1f1f1f",
+                                                    border: `1.5px solid ${cor1}`,
+                                                    boxShadow: `0 0 0 3px ${cor1}22`
                                                 }
                                                 : {
                                                     background: "#fff",
-                                                    color: "#6b4f2a",
-                                                    border: "1.5px solid #ddd0bc",
+                                                    color: "#6b7280",
+                                                    border: "1.5px solid #e5e5e5",
                                                 }
                                         }
                                     >
@@ -218,12 +212,9 @@ export default function ConfirmacaoModal({
 
                         {/* Descrição */}
                         <div>
-                            <label
-                                className="block text-xs font-semibold uppercase tracking-wider mb-1.5"
-                                style={{ color: "#6b4f2a" }}
-                            >
+                            <label className="block text-xs font-semibold uppercase tracking-wider mb-1.5 text-gray-500">
                                 Descrição{" "}
-                                <span style={{ color: "#b0a090", fontWeight: 400, textTransform: "none", letterSpacing: 0 }}>
+                                <span className="text-gray-400 font-normal normal-case tracking-normal">
                                     (opcional)
                                 </span>
                             </label>
@@ -233,17 +224,21 @@ export default function ConfirmacaoModal({
                                 placeholder="Descreva brevemente o motivo da consulta..."
                                 rows={3}
                                 maxLength={300}
-                                className="w-full rounded-lg px-4 py-2.5 text-sm outline-none transition-all resize-none"
+                                className="w-full rounded-lg px-4 py-2.5 text-sm text-gray-800 outline-none transition-all resize-none"
                                 style={{
                                     background: "#fff",
-                                    border: "1.5px solid #ddd0bc",
-                                    color: "#2c1f0e",
-                                    fontFamily: "inherit",
+                                    border: "1.5px solid #e5e5e5",
                                 }}
-                                onFocus={(e) => (e.target.style.border = "1.5px solid #c8a96e")}
-                                onBlur={(e) => (e.target.style.border = "1.5px solid #ddd0bc")}
+                                onFocus={(e) => {
+                                    e.target.style.border = `1.5px solid ${cor1}`;
+                                    e.target.style.boxShadow = `0 0 0 3px ${cor1}22`;
+                                }}
+                                onBlur={(e) => {
+                                    e.target.style.border = "1.5px solid #e5e5e5";
+                                    e.target.style.boxShadow = "none";
+                                }}
                             />
-                            <p className="text-right text-xs mt-1" style={{ color: "#b0a090" }}>
+                            <p className="text-right text-xs mt-1 text-gray-400">
                                 {descricao.length}/300
                             </p>
                         </div>
@@ -252,19 +247,19 @@ export default function ConfirmacaoModal({
                     {/* Botão Confirmar */}
                     <button
                         onClick={handleConfirmar}
-                        className="w-full py-3.5 rounded-xl text-sm font-bold uppercase tracking-widest transition-all active:scale-95"
+                        className="cursor-pointer w-full py-3.5 rounded-xl text-sm font-bold uppercase tracking-widest transition-all active:scale-95"
                         style={{
-                            background: "linear-gradient(135deg, #c8a96e 0%, #b8904e 100%)",
+                            background: `linear-gradient(135deg, ${cor1} 0%, ${cor1}cc 100%)`,
                             color: "#fff",
                             letterSpacing: "0.12em",
-                            boxShadow: "0 4px 16px rgba(200,169,110,0.4)",
+                            boxShadow: `0 4px 16px ${cor1}55`,
                             fontFamily: "'Georgia', serif",
                         }}
                     >
                         Confirmar Agendamento
                     </button>
 
-                    <p className="text-center text-xs mt-4" style={{ color: "#b0a090" }}>
+                    <p className="text-center text-xs mt-4 text-gray-400">
                         Entraremos em contato para finalizar seu agendamento.
                     </p>
                 </div>

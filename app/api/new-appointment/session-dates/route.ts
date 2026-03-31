@@ -1,6 +1,7 @@
 
 import { NextResponse } from "next/server";
 import { pegarDatas } from "@/app/services/user.service";
+import dayjs from "dayjs";
 
 export async function GET(request: Request) {
 
@@ -11,10 +12,26 @@ export async function GET(request: Request) {
         "17:00", "17:30", "18:00", "18:30", "19:00", "19:30",
     ];
 
+
+
+
+
+
     const avaliableTimes: Record<string, string[]> = {};
 
     try {
         const datas = await pegarDatas();
+
+        const hoje = dayjs();
+        const limite = hoje.add(6, "month");
+
+        let dataAtual = hoje;
+
+        while (dataAtual.isBefore(limite) || dataAtual.isSame(limite, "day")) {
+            avaliableTimes[dataAtual.toISOString().split("T")[0]] = horarios;
+            dataAtual = dataAtual.add(1, "day");
+        }
+
 
         datas.forEach((data) => {
             const date = new Date(data.start);

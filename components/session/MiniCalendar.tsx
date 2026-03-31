@@ -26,11 +26,11 @@ export function MiniCalendar({ accentColor, selected, onSelect }: {
     return (
         <div className="select-none w-60">
             <div className="flex items-center justify-between mb-3">
-                <button onClick={prev} className="w-7 h-7 rounded-lg bg-gray-100 hover:bg-gray-200 flex items-center justify-center text-gray-500 transition-colors">‹</button>
+                <button onClick={prev} className="cursor-pointer w-7 h-7 rounded-lg bg-gray-100 hover:bg-gray-200 flex items-center justify-center text-gray-500 transition-colors">‹</button>
                 <span className="text-xs font-bold text-gray-700" style={{ fontFamily: "'Syne',sans-serif" }}>
                     {MESES[month].slice(0, 3)} {year}
                 </span>
-                <button onClick={next} className="w-7 h-7 rounded-lg bg-gray-100 hover:bg-gray-200 flex items-center justify-center text-gray-500 transition-colors">›</button>
+                <button onClick={next} className="cursor-pointer w-7 h-7 rounded-lg bg-gray-100 hover:bg-gray-200 flex items-center justify-center text-gray-500 transition-colors">›</button>
             </div>
             <div className="grid grid-cols-7 mb-1">
                 {DIAS_HDR.map((d, i) => (
@@ -48,9 +48,9 @@ export function MiniCalendar({ accentColor, selected, onSelect }: {
                         <button key={i} disabled={past} onClick={() => onSelect(d)}
                             className={`aspect-square rounded-lg text-[11px] font-semibold flex items-center justify-center transition-all
                 ${past ? "text-gray-200 cursor-not-allowed" :
-                                    isSel ? "text-white scale-110 shadow-sm" :
-                                        isTod ? "font-bold" :
-                                            "text-gray-600 hover:bg-gray-100 hover:scale-105"}`}
+                                    isSel ? "text-white scale-110 shadow-sm cursor-pointer" :
+                                        isTod ? "font-bold cursor-pointer" :
+                                            "text-gray-600 hover:bg-gray-100 hover:scale-105 cursor-pointer"}`}
                             style={isSel ? { background: accentColor } : isTod ? { color: accentColor, outline: `1.5px solid ${accentColor}44`, borderRadius: "8px" } : {}}
                         >{day}</button>
                     );

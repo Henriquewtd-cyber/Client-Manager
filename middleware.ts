@@ -20,7 +20,9 @@ export async function middleware(request: NextRequest) {
         pathname.startsWith("/api/public") ||
         pathname.startsWith("/login") ||
         pathname.startsWith("/new-appointment") ||
+        pathname.startsWith("/api/web-hooks") ||
         pathname.startsWith("/api/new-appointment")
+
     ) {
         return NextResponse.next(); // Se o usuario esta tentando acessar qualquer uma dessas rotas, a reposta é sempre liberar o acesso.
     }

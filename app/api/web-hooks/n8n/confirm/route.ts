@@ -8,31 +8,55 @@ import { confirmarEvento } from "@/app/services/user.service";
 export async function POST(request: Request) {
     const data = await request.json();
 
+
     const { confirm, id } = data;
+
 
 
     try {
         let mensagem = "";
+        let status = 200;
+        let ok = true;
+
         if (confirm) {
-            await confirmarEvento(id, "confirmado");
-            mensagem = "Agendamento confirmado com sucesso!";
+            if (await confirmarEvento(id, "confirmado")) {
+                mensagem = "Agendamento confirmado com sucesso!";
+                status = 200;
+                ok = true;
+            } else {
+                mensagem = "Erro ao confirmar agendamento.";
+                status = 500;
+                ok = false;
+            }
         } else {
-            await confirmarEvento(id, "cancelado");
-            mensagem = "Agendamento cancelado com sucesso!";
+            if (await confirmarEvento(id, "cancelado")) {
+                mensagem = "Agendamento cancelado com sucesso!";
+                status = 200;
+                ok = true;
+            } else {
+                mensagem = "Erro ao cancelar agendamento.";
+                status = 500;
+                ok = false;
+            }
         }
 
         const response = NextResponse.json({
-            ok: true,
+            ok: ok,
             message: mensagem,
-            status: 200,
+            status: status,
         });
 
         return response;
+
     } catch (error) {
-        console.error(error);
+        console.error("Erro ao confirmar evento:", error);
         return NextResponse.json(
-            { error: "Erro ao confirmar agendamento." },
+            { error: "Erro ao confirmar evento." },
             { status: 500 }
         );
     }
+
 }
+
+
+

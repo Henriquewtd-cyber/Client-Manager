@@ -2,6 +2,9 @@
 import { type User, Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { JsonObject } from "@prisma/client/runtime/library";
+import dayjs from "dayjs";
+import utc from "dayjs/plugin/utc";
+
 
 
 // Função para buscar um usuário pelo email
@@ -58,7 +61,7 @@ export async function criarEvento(data: any) {
     };
 
     try {
-        await prisma.event.create({
+        const evento = await prisma.event.create({
             data: {
                 title: data.title,
                 nomeCliente: data.nomeCliente,
@@ -70,6 +73,7 @@ export async function criarEvento(data: any) {
                 color: eventColors[data.title] || "#1E90FF", // Cor padrão se não encontrada
             },
         });
+        return evento;
     } catch (error) {
         console.error("Erro ao criar evento:", error);
     }
@@ -90,11 +94,11 @@ export async function pegarTodosEventos() {
 //Função para pegar apenas as datas de até 6 meses dos eventos do banco de dados
 export async function pegarDatas() {
     try {
-        const hoje = new Date();
-        hoje.setHours(0, 0, 0, 0);
 
-        const seisMesesDepois = new Date();
-        seisMesesDepois.setMonth(seisMesesDepois.getMonth() + 6);
+        dayjs.extend(utc);
+
+        const hoje = dayjs().utc().startOf("day").toDate();
+        const seisMesesDepois = dayjs().utc().add(6, "month").endOf("day").toDate();
 
         const datas = await prisma.event.findMany({
             where: {
@@ -108,7 +112,6 @@ export async function pegarDatas() {
                 end: true,
             },
         });
-
         return datas;
     } catch (error) {
         console.error("Erro ao buscar datas:", error);
@@ -154,8 +157,10 @@ export async function deletarEvento(id: string) {
                 id: id,
             },
         });
+        return true;
     } catch (error) {
         console.error("Erro ao deletar evento:", error);
+        return false;
     }
 }
 
@@ -169,9 +174,12 @@ export async function confirmarEvento(id: string, status: string) {
             data: {
                 status: status,
             },
+
         });
+        return true;
     } catch (error) {
         console.error("Erro ao confirmar evento:", error);
+        return false;
     }
 }
 
