@@ -49,7 +49,6 @@ export async function criarUsuario(data: { name: string; email: string; password
 }
 
 //Função para criar um evento novo
-
 export async function criarEvento(data: any) {
     const eventColors: Record<string, string> = {
         "Análise de Perfil": "#1E90FF",  // Azul
@@ -120,7 +119,6 @@ export async function pegarDatas() {
 }
 
 //Função para verificar a disponibilidade de um horário para um evento
-
 export async function verificarDisponibilidade(start: Date, end: Date): Promise<boolean> {
     try {
         const eventos = await prisma.event.findMany({
@@ -220,5 +218,134 @@ export async function acharIdEventoPendente(estado: string, telefone: string): P
     } catch (error) {
         console.error("Erro ao achar id do evento:", error);
         return null;
+    }
+}
+
+//Função para pegar o próximo evento de um cliente pelo telefone
+export async function pegarProximoEvento(telefone: string) {
+    const agora = new Date();
+
+    try {
+        const proximaConsulta = await prisma.event.findFirst({
+            where: {
+                telefone: telefone,
+                start: {
+                    gte: agora, // só futuras
+                },
+            },
+            orderBy: {
+                start: 'asc', // mais próxima primeiro
+            },
+        });
+        return proximaConsulta ? { tipo: proximaConsulta.title, start: proximaConsulta.start } : null;
+
+    } catch (error) {
+        console.error("Erro ao pegar próximo evento:", error);
+        return null;
+    }
+}
+
+//----------------- Funções dos jobs da fila de agendamento --------------------------------------------------------------
+
+// Função para criar um job novo no banco de dados
+export async function criarJob(data: { eventId: string; telefone: string; nome: string; dataExecucao: Date; tipo: string }) {
+    try {
+        await prisma.job.create({
+            data: {
+                eventId: data.eventId,
+                telefone: data.telefone,
+                nome: data.nome,
+                dataExec: data.dataExecucao,
+                tipo: data.tipo,
+                status: "pendente",
+            },
+        });
+    }
+    catch (error) {
+        console.error("Erro ao criar job:", error);
+    }
+}
+
+
+//Função para pegar os jobs por tipo do banco de dados
+export async function pegarJobsPendentes() {
+    const agora = new Date();
+    const limite = new Date(Date.now() + 24 * 60 * 60 * 1000); // próximas 24h
+    try {
+        const jobs = await prisma.job.findMany({
+            where: {
+                status: "pendente",
+                dataExec: {
+                    lte: limite,
+                    gte: agora,
+                },
+            },
+        });
+        return jobs;
+    } catch (error) {
+        console.error("Erro ao pegar jobs pendentes:", error);
+        return [];
+    }
+}
+
+//Função para pegar os jobs executados no banco de dados
+export async function pegarJobsExecutados() {
+    try {
+        const jobs = await prisma.job.findMany({
+            where: {
+                status: "executado",
+            },
+        });
+
+        return jobs;
+    } catch (error) {
+        console.error("Erro ao pegar jobs executados:", error);
+        return [];
+    }
+}
+
+// Função para limpar os jobs de 7 dias passados do banco de dados (executados)
+export async function limparJobsExecutados() {
+    try {
+        await prisma.job.deleteMany({
+            where: {
+                status: "executado",
+                dataExec: {
+                    lt: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000) // 7 dias atrás
+                }
+            }
+        });
+    } catch (error) {
+        console.error("Erro ao limpar jobs executados:", error);
+    }
+}
+
+//Função para atualizar o status de um job no banco de dados
+export async function atualizarStatusJob(id: string, status: string) {
+    try {
+        await prisma.job.update({
+            where: {
+                id: id,
+            },
+            data: {
+                status: status,
+            },
+        });
+    } catch (error) {
+        console.error("Erro ao atualizar status do job:", error);
+    }
+}
+
+//Função para deletar um job do banco de dados
+export async function deletarJob(id: string) {
+    try {
+        await prisma.job.delete({
+            where: {
+                id: id,
+            },
+        });
+    }
+    catch (error) {
+        console.error("Erro ao deletar job:", error);
     }
 }

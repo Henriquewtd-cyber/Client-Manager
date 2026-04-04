@@ -29,3 +29,25 @@ model Event {
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 }
+
+model Job {
+  id           String   @id @default(auto()) @map("_id") @db.ObjectId
+  eventId      String   
+  nome         String 
+  telefone     String
+  dataExec     DateTime
+  tipo         String
+  status       String
+}
+
+
+model Pagamentos {
+  id           String   @id @default(auto()) @map("_id") @db.ObjectId
+  nomeCliente  String
+  telefone     String
+  estado       String   
+  
+  tipo         String
+  url          String
+  publicId    String
+}

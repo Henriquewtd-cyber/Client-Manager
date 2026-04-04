@@ -22,7 +22,6 @@ const SERVICES_MAP: Record<string, { label: string; tag: string; duration: numbe
 
 const HORARIOS =
 
-
     [
         "07:00", "07:30", "08:00", "08:30", "09:00", "09:30",
         "10:00", "10:30", "11:00", "11:30", "13:00", "13:30",

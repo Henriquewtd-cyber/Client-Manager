@@ -27,10 +27,10 @@ export function Header() {
         {/* LOGO — opção C */}
         <div className="flex items-center gap-3.5">
           {/* Barra accent vertical */}
-          <div className="w-1 h-11 rounded-full bg-blue-600 flex-shrink-0" />
+          <div className="w-1 h-11 rounded-full bg-blue-600 shrink-0" />
 
           {/* Ícone SVG */}
-          <div className="w-9 h-9 rounded-lg bg-blue-100 flex items-center justify-center flex-shrink-0">
+          <div className="w-9 h-9 rounded-lg bg-blue-100 flex items-center justify-center shrink-0">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
               <circle cx="9" cy="7" r="3" fill="#1e40af" />
               <path

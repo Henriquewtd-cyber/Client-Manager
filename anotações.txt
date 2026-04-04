@@ -1,0 +1,76 @@
+estrutura a seguir:
+
+//Waha feito
+//Redis feito
+//agurdando pagamento feito
+//cancel feito
+
+// fiz os workers, falta colocar o começo da criação dos jobs no db apos a confirmação do adm no front;
+// falta arrumar a data da criação dos jobs na rota de post do dash// precisa achar um jeito de pegar a data do evento
+
+src/
+├── app/
+│   ├── api/
+│   │   └── webhook/
+│   │       └── route.ts        
+│   │       # Endpoint que recebe mensagens do WAHA (POST)
+│   │       # Só valida entrada e chama o service principal
+│   │
+│   │   └── admin/
+│   │       └── route.ts        
+│   │       # Rotas internas (dashboard, ações manuais, etc)
+│   │
+│   ├── dashboard/
+│   │   └── page.tsx            
+│   │       # UI do painel (opcional)
+│
+├── backend/
+│
+│   ├── services/
+│   │   ├── conversation.service.ts   
+│   │   # 🧠 CÉREBRO do chatbot
+│   │   # Recebe mensagem, lê estado no Redis e decide qual handler chamar
+│   │
+│   │   ├── payment.service.ts        
+│   │   # Regras de pagamento (validar comprovante, status, etc)
+│   │
+│   │   └── booking.service.ts        
+│   │   # Regras de agendamento (criar, cancelar, remarcar)
+│
+│   ├── state/
+│   │   ├── states.ts                
+│   │   # Enum/lista de estados possíveis (AGUARDANDO_PAGAMENTO, CONFIRMADO, etc)
+│   │
+│   │   └── handlers/
+│   │       ├── awaitingPayment.ts    
+│   │       # Lógica quando usuário está aguardando pagamento
+│   │
+│   │       ├── awaitingConfirmation.ts
+│   │       # Lógica quando já enviou comprovante e espera confirmação
+│   │
+│   │       └── confirmed.ts          
+│   │       # Lógica após confirmação (ex: permitir cancelamento)
+│
+│   ├── infra/
+│   │   ├── redis.ts                 
+│   │   # Conexão com Redis + helpers (getSession, setSession)
+│   │
+│   │   ├── db.ts                    
+│   │   # Conexão com banco (Postgres, etc)
+│   │
+│   │   └── waha.ts                  
+│   │   # Funções pra enviar mensagem via WAHA (sendMessage, etc)
+│
+│   └── types/
+│       └── index.ts                 
+│       # Tipagens globais (Message, Session, State, etc)
+│
+└── lib/
+    └── utils.ts                     
+    # Funções utilitárias (formatar data, texto, etc)
+
+
+// quando agenda a consulta cria o job no db
+// faltando 30 horas o scheduler worker joga esse job no redis
+// faltando 24 horas o executor worker executa o job
+// no dia da consulta o cleaner worker limpa o job do db e do redis

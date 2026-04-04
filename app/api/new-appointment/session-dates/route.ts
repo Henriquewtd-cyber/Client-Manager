@@ -12,11 +12,6 @@ export async function GET(request: Request) {
         "17:00", "17:30", "18:00", "18:30", "19:00", "19:30",
     ];
 
-
-
-
-
-
     const avaliableTimes: Record<string, string[]> = {};
 
     try {

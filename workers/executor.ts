@@ -1,7 +1,7 @@
 // arquivo para manuseio dos jobs da fila de agendamento
 
 import { Worker } from "bullmq";
-import { enviarConfirmacaoN8N, enviarLembreteN8N } from "./app/services/job.handler";
+import { enviarConfirmacaoN8N, enviarLembreteN8N } from "../app/services/job.handler";
 import dotenv from "dotenv";
 
 dotenv.config();
