@@ -82,10 +82,10 @@ export default function Login() {
         </div>
       )}
 
-      <div className="w-full max-w-md bg-white p-8 rounded-2xl shadow-xl min-h-[350px] flex flex-col justify-between mb-20">
+      <div className="w-full max-w-md bg-white p-8 rounded-2xl shadow-xl min-h-87.5 flex flex-col justify-between mb-20">
         <form
           onSubmit={handleSubmit}
-          className="flex flex-col justify-between min-h-[330px]"
+          className="flex flex-col justify-between min-h-82.5"
         >
           <Label className="text-xl text-center block">Entrar</Label>
 

@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { useSearchParams } from 'next/navigation'
 import { ToastContainer, useToast } from "@/components/toast";
 import ConfirmacaoModal from "@/components/session/ConfirmModal";
 
