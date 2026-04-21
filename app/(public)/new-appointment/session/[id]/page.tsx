@@ -29,6 +29,25 @@ const HORARIOS =
         "17:00", "17:30", "18:00", "18:30", "19:00", "19:30",
     ];
 
+const templateHorarios: Record<string, string[]> = {};
+
+const hoje = new Date();
+
+const inicio = new Date(hoje);
+inicio.setMonth(inicio.getMonth() - 3);
+
+const fim = new Date(hoje);
+fim.setMonth(fim.getMonth() + 3);
+
+const dataAtual = new Date(inicio);
+
+while (dataAtual <= fim) {
+    const dateKey = dataAtual.toISOString().split("T")[0];
+
+    templateHorarios[dateKey] = [...HORARIOS];
+
+    dataAtual.setDate(dataAtual.getDate() + 1);
+}
 
 export default function AgendarPage({
     onBack,
@@ -67,9 +86,10 @@ export default function AgendarPage({
 
     const [modalAberto, setModalAberto] = useState(false);
 
-    const [horarios, setHorarios] = useState<Record<string, string[]>>({});
+    const [horarios, setHorarios] = useState(templateHorarios);
 
     useEffect(() => {
+        console.log(horarios);
         TakeDates();
     }, []);
 
