@@ -22,7 +22,7 @@ async function verificarJobs() {
             await criarLembreteJobRedis(job.eventId, job.dataExec, job.telefone, job.nome);
         }
 
-        await atualizarStatusJob(job.id);
+        await atualizarStatusJob(job.id, "agendado no redis");
 
     }
 
