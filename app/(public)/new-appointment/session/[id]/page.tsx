@@ -1,10 +1,11 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { useSearchParams } from "next/navigation";
+import { useSearchParams } from 'next/navigation'
 import { ToastContainer, useToast } from "@/components/toast";
 import ConfirmacaoModal from "@/components/session/ConfirmModal";
 
+import * as React from "react";
 
 import { SessionSlot } from "@/app/types/appointment";
 import { SessionCard } from "@/components/session/SessionCard";
@@ -33,13 +34,14 @@ const HORARIOS =
 export default function AgendarPage({
     onBack,
     onConfirm,
+    params
 }: {
     onBack?: () => void;
     onConfirm?: (slots: SessionSlot[], total: number) => void;
+    params: Promise<{ id: string }>;
 }) {
-    const searchParams = useSearchParams();
-    const serviceId = searchParams.get("id") ?? "";
-    const svc = SERVICES_MAP[serviceId];
+    const { id } = React.use(params);
+    const svc = SERVICES_MAP[id];
 
     const serviceName = svc?.label ?? "Serviço";
     const serviceTag = svc?.tag ?? "";
@@ -81,7 +83,7 @@ export default function AgendarPage({
             const res = await fetch("/api/new-appointment", {
                 method: "POST",
                 headers: { "Content-type": "application/json" },
-                body: JSON.stringify({ slots, total, service: SERVICES_MAP[serviceId].label, dados, duration }),
+                body: JSON.stringify({ slots, total, service: SERVICES_MAP[id].label, dados, duration }),
             });
 
             if (!res.ok) {

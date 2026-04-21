@@ -217,7 +217,7 @@ export default function AgendamentoPage() {
                   {/* CTA / booked state */}
                   {(
                     <Link
-                      href={`/new-appointment/session?id=${svc.id}`}
+                      href={`/new-appointment/session/${svc.id}`}
                       className="w-full py-3 rounded-2xl text-sm font-bold text-white transition-all duration-150 hover:opacity-90 hover:-translate-y-0.5 active:translate-y-0"
                     >
                       <button
