@@ -1,7 +1,7 @@
 
 import { NextResponse } from "next/server";
 import { criarEvento, pegarTodosEventos } from "@/app/services/user.service";
-import { criarConfirmarJob, criarLembreteJob } from "@/app/services/job.service";
+//import { criarConfirmarJob, criarLembreteJob } from "@/app/services/job.service";
 
 export async function POST(request: Request) {
 
@@ -49,8 +49,8 @@ export async function POST(request: Request) {
             }
 
             Promise.allSettled([
-                criarConfirmarJob(evento.id, data.start, dados.telefone, dados.nome),
-                criarLembreteJob(evento.id, data.start, dados.telefone, dados.nome),
+                //criarConfirmarJob(evento.id, data.start, dados.telefone, dados.nome),
+                //criarLembreteJob(evento.id, data.start, dados.telefone, dados.nome),
             ]);
         }
 
