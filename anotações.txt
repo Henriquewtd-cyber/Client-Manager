@@ -7,6 +7,10 @@ estrutura a seguir:
 
 // fiz os workers, falta colocar o começo da criação dos jobs no db apos a confirmação do adm no front;
 // falta arrumar a data da criação dos jobs na rota de post do dash// precisa achar um jeito de pegar a data do evento
+// o inicio é o pagamentoJob, ele faz o primeiro contato com o cliente logo após marcar a consulta
+
+// precisamos de uma forma de associar o evento com o comprovante e etc.
+
 
 src/
 ├── app/
@@ -74,3 +78,61 @@ src/
 // faltando 30 horas o scheduler worker joga esse job no redis
 // faltando 24 horas o executor worker executa o job
 // no dia da consulta o cleaner worker limpa o job do db e do redis
+
+
+
+
+
+1. Peças do que você mencionou
+Agendamento na web
+O fluxo em app/api/new-appointment/route.ts recebe slots, dados do cliente (nome, telefone, etc.), monta o evento e chama criarEvento. Em seguida dispara jobs em fila (criarConfirmarJob / criarLembreteJob) — a ideia é automatizar confirmação e lembrete sem depender de alguém clicar manualmente no WhatsApp.
+
+Armazenamento
+O evento/consulta fica persistido (via serviço de usuário/Prisma). O “estado da conversa” do bot fica no Redis (session:{telefone}) com campos como estado, telefone, opcionalmente paymentId — ver backend/infra/redis.ts.
+
+WAHA
+É o servidor HTTP que fala com o WhatsApp: seu app chama endpoints como sendText (backend/infra/waha.ts) para enviar mensagens. Para receber, o WAHA (ou um proxy como n8n) deve fazer POST no seu backend com o conteúdo da mensagem — o esboço está em app/api/web-hooks/n8n/route.ts, que deveria delegar para handleMessage em conversation.service.ts.
+
+Máquina de estados do “chatbot”
+STATES em backend/state/states.ts define fases: aguardando pagamento, comprovante enviado, aceito, confirmado, cancelado. O handleMessage lê a sessão no Redis e chama o handler certo (awaitingPayment, receipt, approved, confirmed, etc.). Ou seja: não é um LLM obrigatório — é um roteador por estado + mensagens fixas (e upload de comprovante no awaitingPayment).
+
+n8n + BullMQ
+BullMQ (workers/executor.ts): quando o job dispara (confirmacao ou lembrete), chama enviarConfirmacaoN8N / enviarLembreteN8N, que fazem POST para um webhook do n8n.
+n8n costuma ser o lugar onde você encadeia: receber payload → formatar texto → chamar WAHA → opcionalmente registrar log. O job.service agenda esses envios com delay (ex.: confirmação calculada como 1 dia antes do horário, às 15h — ver comentários no código).
+Assim, você tem dois “motores” possíveis: fila (tempo/agenda) e webhook (tempo real quando o usuário manda mensagem).
+
+2. Onde entra “iniciar o fluxo do chatbot após marcar na web”
+Hoje o desenho mistura:
+
+Jobs agendados → n8n → (provavelmente) WhatsApp para “confirmar” ou “lembrar” perto da data.
+Conversa reativa → usuário responde no WhatsApp → webhook → handleMessage → Redis + handlers.
+O que falta conceitualmente é o primeiro contato imediato depois do POST do agendamento: ou seja, quem coloca o telefone no estado certo e manda a primeira mensagem.
+
+Formas comuns de fazer isso (você pode combinar):
+
+Abordagem	O que acontece
+A – Disparo imediato no backend
+No mesmo handler que retorna sucesso ao front (ou logo após criarEvento), chamar sendTextMessage com texto do tipo: resumo da consulta, valor, PIX/chave, e “responda com o comprovante”. Em seguida setSession(telefone, { estado: AGUARDANDO_PAGAMENTO, telefone, appointmentId? }) para o próximo inbound cair no awaitingPaymentHandler.
+B – Via n8n
+O web chama um webhook n8n com { telefone, nome, appointmentId, ... }; o workflow envia a mensagem pelo WAHA e opcionalmente chama uma rota sua para “pré-registrar” sessão.
+C – Só jobs
+Não manda nada na hora; só no dia/hora do job de confirmação. Simples, mas pior para pagamento imediato.
+Para confirmação de pagamento e confirmação de agendamento, o fluxo mental é:
+
+Web cria consulta com status inicial (ex.: Pendente).
+Primeira mensagem WhatsApp define expectativa: pagar → enviar comprovante.
+Inbound atualiza Redis e Prisma (criarValidacaodePagamento / atualização de estado), como já esboçado no awaitingPaymentHandler.
+Staff ou regra automática passa para ACEITO / CONFIRMADO (handlers approved / confirmed).
+Jobs continuam responsáveis por lembretes e reconfirmações próximas à data.
+Ou seja: “iniciar o chatbot” = garantir (1) primeira mensagem outbound e (2) sessão Redis + vínculo com o ID do agendamento/pagamento, para que as próximas mensagens não caiam em estado indefinido.
+
+3. Detalhe importante: identificação pelo telefone
+Tudo gira em torno do mesmo número normalizado (DDI 55, só dígitos), igual você já faz em enviarConfirmacaoN8N. O agendamento web e o Redis precisam usar a mesma chave; caso contrário o getSession(telefone) não encontra a sessão que você “abriu” ao agendar.
+
+4. Como isso se encaixa no que você já tem (e o que ainda está incompleto)
+A ideia está clara: fila para mensagens no tempo certo + estado no Redis para diálogo + WAHA para transporte + n8n como cola opcional.
+Pontos típicos de completar depois: garantir que o webhook passe um objeto { message, telefone, messageType, nome } para handleMessage; corrigir o fallback de sessão em conversation.service (hoje aparece string literal 'STATES.AGUARDANDO_PAGAMENTO' em vez do valor real do STATES); e alinhar exports em job.service com o que new-appointment importa — isso afeta só a execução, não o desenho do fluxo.
+5. Resumo em uma frase
+Depois que o usuário marca na web, o backend deve criar/atualizar o registro da consulta, opcionalmente pré-carregar a sessão no Redis e enviar a primeira mensagem pelo WAHA (direto ou via n8n); a partir daí, cada resposta no WhatsApp entra pelo webhook e avança a máquina de estados até pagamento aceito e consulta confirmada, enquanto os jobs cuidam dos toques no tempo (confirmação/lembrete).
+
+Se quiser, no próximo passo podemos desenhar só o payload mínimo (campos do evento + sessão) que você deve guardar para não perder o vínculo entre agendamento web e conversa no WhatsApp.
