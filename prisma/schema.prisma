@@ -49,5 +49,14 @@ model Pagamentos {
   
   tipo         String
   url          String
-  publicId    String
+  publicId     String
+}
+
+model Financa {
+  id           String   @id @default(auto()) @map("_id") @db.ObjectId
+  nome         String
+  tipo         String
+  emoji        String
+  data         DateTime
+  valor        Int
 }

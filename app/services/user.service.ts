@@ -349,3 +349,52 @@ export async function deletarJob(id: string) {
         console.error("Erro ao deletar job:", error);
     }
 }
+
+//Função para criar uma finança nova no banco de dados
+export async function criarFinanca(data: { tipo: string; valor: number; nome: string; data: Date; emoji: string }) {
+    try {
+        await prisma.financa.create({
+            data: {
+                tipo: data.tipo,
+                valor: data.valor,
+                nome: data.nome,
+                data: data.data,
+                emoji: data.emoji,
+            },
+        });
+    }
+    catch (error) {
+        console.error("Erro ao criar finança:", error);
+    }
+}
+
+//Função para pegar as finanças do banco de dados
+export async function pegarFinancas() {
+    try {
+        const financas = await prisma.financa.findMany({
+            orderBy: {
+                data: 'desc',
+            },
+        });
+        return financas;
+    }
+    catch (error) {
+        console.error("Erro ao pegar finanças:", error);
+        return [];
+    }
+}
+
+//Função para deletar uma finança do banco de dados 
+export async function deletarFinanca(id: string) {
+    try {
+        await prisma.financa.delete({
+            where: {
+                id: id,
+            },
+        });
+    }
+    catch (error) {
+        console.error("Erro ao deletar finança:", error);
+    }
+}
+
