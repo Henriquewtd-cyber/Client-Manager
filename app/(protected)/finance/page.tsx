@@ -1,43 +1,14 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import { AddModal } from "@/components/finances/Addmodal";
+import { CATEGORY_CONFIG, Financa, fmt, PeriodFilter, PERIOD_LABELS, Category } from "@/components/finances/Others";
+import { SummaryCard, LoadingToast, TransactionRow } from "@/components/finances/Others";
 
-// ─── Types ───────────────────────────────────────────────────────────────────
-
-type Category = "income" | "expense" | "purchase";
-type PeriodFilter = "day" | "week" | "month" | "all";
-
-interface Financa {
-  id: string;
-  nome: string;
-  tipo: string;
-  emoji: string;
-  data: string;
-  valor: number; // stored as int (centavos)
-}
-
-// ─── Config ──────────────────────────────────────────────────────────────────
-
-const CATEGORY_CONFIG: Record<
-  Category,
-  { label: string; color: string; bg: string; border: string; icon: string }
-> = {
-  income: { label: "Receita", color: "text-emerald-600", bg: "bg-emerald-50", border: "border-emerald-200", icon: "↑" },
-  expense: { label: "Gasto", color: "text-rose-500", bg: "bg-rose-50", border: "border-rose-200", icon: "↓" },
-  purchase: { label: "Compra", color: "text-amber-500", bg: "bg-amber-50", border: "border-amber-200", icon: "◈" },
-};
-
-const PERIOD_LABELS: Record<PeriodFilter, string> = {
-  day: "Hoje", week: "Semana", month: "Mês", all: "Tudo",
-};
-
-const ICONS = ["🏠", "🛒", "🍽️", "🚗", "✈️", "💊", "📱", "🎓", "💼", "💰", "🎁", "⚡", "💧", "📺", "🐾", "🏋️"];
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
-function fmt(centavos: number) {
-  return (centavos / 100).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
-}
+
 
 function isInPeriod(dateStr: string, period: PeriodFilter): boolean {
   if (period === "all") return true;
@@ -93,196 +64,11 @@ async function apiDelete(id: string): Promise<void> {
   if (!res.ok) throw new Error("Erro ao deletar");
 }
 
-// ─── Loading Spinner ──────────────────────────────────────────────────────────
 
-function LoadingToast() {
-  return (
-    <div className="fixed top-20 left-1/2 -translate-x-1/2 z-50 pointer-events-none">
-      <div className="bg-white border border-slate-100 shadow-lg rounded-2xl px-5 py-3 flex items-center gap-3 animate-in fade-in slide-in-from-top-2 duration-200">
-        <span className="w-4 h-4 border-2 border-slate-200 border-t-slate-700 rounded-full animate-spin flex-shrink-0" />
-        <span className="text-xs font-semibold text-slate-500 whitespace-nowrap">Atualizando…</span>
-      </div>
-    </div>
-  );
-}
-
-// ─── SummaryCard ─────────────────────────────────────────────────────────────
-
-function SummaryCard({
-  label, value, type, percent,
-}: {
-  label: string; value: number; type: Category | "balance"; percent?: number;
-}) {
-  const configs = {
-    income: { accent: "bg-emerald-500", text: "text-emerald-600", light: "bg-emerald-50", symbol: "+" },
-    expense: { accent: "bg-rose-400", text: "text-rose-500", light: "bg-rose-50", symbol: "−" },
-    purchase: { accent: "bg-amber-400", text: "text-amber-500", light: "bg-amber-50", symbol: "◈" },
-    balance: { accent: "bg-slate-800", text: "text-slate-800", light: "bg-slate-50", symbol: "=" },
-  };
-  const c = configs[type];
-  return (
-    <div className={`rounded-2xl border border-slate-100 ${c.light} p-5 flex flex-col gap-3 shadow-sm`}>
-      <div className="flex items-center justify-between">
-        <span className="text-xs font-semibold tracking-widest text-slate-400 uppercase">{label}</span>
-        <span className={`text-lg font-bold ${c.text} opacity-40`}>{c.symbol}</span>
-      </div>
-      <span className={`text-2xl font-bold tracking-tight ${c.text}`}>{fmt(value)}</span>
-      {percent !== undefined && (
-        <div className="w-full h-1 bg-white rounded-full overflow-hidden">
-          <div className={`h-full ${c.accent} rounded-full transition-all duration-500`} style={{ width: `${Math.min(percent, 100)}%` }} />
-        </div>
-      )}
-    </div>
-  );
-}
-
-// ─── TransactionRow ───────────────────────────────────────────────────────────
-
-function TransactionRow({ tx, onDelete, deleting }: { tx: Financa; onDelete: (id: string) => void; deleting?: boolean }) {
-  const type = tx.tipo as Category;
-  const cfg = CATEGORY_CONFIG[type] ?? CATEGORY_CONFIG.expense;
-  return (
-    <div className={`flex items-center gap-3 py-3 border-b border-slate-50 group transition-opacity ${deleting ? "opacity-40 pointer-events-none" : ""}`}>
-      <div className={`w-9 h-9 rounded-xl flex items-center justify-center text-base ${cfg.bg} border ${cfg.border} flex-shrink-0`}>
-        {tx.emoji}
-      </div>
-      <div className="flex-1 min-w-0">
-        <p className="text-sm font-medium text-slate-700 truncate">{tx.nome}</p>
-        <p className="text-xs text-slate-400">
-          {new Date(tx.data).toLocaleDateString("pt-BR", { day: "2-digit", month: "short", year: "numeric" })}
-        </p>
-      </div>
-      <div className="flex items-center gap-3">
-        <span className={`text-sm font-semibold ${cfg.color}`}>
-          {type === "income" ? "+" : "−"} {fmt(tx.valor)}
-        </span>
-        <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${cfg.bg} ${cfg.color} border ${cfg.border}`}>
-          {cfg.label}
-        </span>
-        <button
-          onClick={() => onDelete(tx.id)}
-          className="opacity-0 group-hover:opacity-100 transition-opacity text-slate-300 hover:text-rose-400 text-xs px-1"
-        >
-          {deleting ? "…" : "✕"}
-        </button>
-      </div>
-    </div>
-  );
-}
-
-// ─── AddModal ─────────────────────────────────────────────────────────────────
-
-function AddModal({
-  open, onClose, onAdd, saving,
-}: {
-  open: boolean;
-  onClose: () => void;
-  onAdd: (data: Omit<Financa, "id">) => Promise<void>;
-  saving: boolean;
-}) {
-  const [type, setType] = useState<Category>("expense");
-  const [label, setLabel] = useState("");
-  const [amount, setAmount] = useState("");
-  const [date, setDate] = useState(new Date().toISOString().slice(0, 10));
-  const [icon, setIcon] = useState("🛒");
-  const [error, setError] = useState("");
-
-  async function handleSubmit() {
-    setError("");
-    const n = Math.round(parseFloat(amount.replace(",", ".")) * 100);
-    if (!label.trim()) { setError("Informe uma descrição."); return; }
-    if (isNaN(n) || n <= 0) { setError("Informe um valor válido."); return; }
-    try {
-      await onAdd({ nome: label.trim(), tipo: type, emoji: icon, data: new Date(date + "T12:00:00").toISOString(), valor: n });
-      setLabel(""); setAmount(""); setDate(new Date().toISOString().slice(0, 10)); setIcon("🛒");
-    } catch {
-      setError("Não foi possível salvar. Tente novamente.");
-    }
-  }
-
-  if (!open) return null;
-
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/20 backdrop-blur-sm" onClick={onClose}>
-      <div className="bg-white rounded-3xl shadow-2xl border border-slate-100 w-full max-w-md mx-4 p-6" onClick={(e) => e.stopPropagation()}>
-        <div className="flex items-center justify-between mb-5">
-          <h2 className="text-base font-bold text-slate-800 tracking-tight">Nova Transação</h2>
-          <button onClick={onClose} className="text-slate-300 hover:text-slate-500 transition-colors text-xl leading-none">✕</button>
-        </div>
-
-        {/* Type */}
-        <div className="flex gap-2 mb-4">
-          {(Object.keys(CATEGORY_CONFIG) as Category[]).map((t) => {
-            const c = CATEGORY_CONFIG[t];
-            return (
-              <button key={t} onClick={() => setType(t)}
-                className={`flex-1 py-2 rounded-xl text-xs font-semibold border transition-all ${type === t ? `${c.bg} ${c.color} ${c.border}` : "bg-slate-50 text-slate-400 border-slate-100"}`}
-              >
-                {c.icon} {c.label}
-              </button>
-            );
-          })}
-        </div>
-
-        {/* Icon */}
-        <div className="mb-4">
-          <label className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2 block">Ícone</label>
-          <div className="flex flex-wrap gap-2">
-            {ICONS.map((i) => (
-              <button key={i} onClick={() => setIcon(i)}
-                className={`w-8 h-8 rounded-lg text-base transition-all ${icon === i ? "bg-slate-800 scale-110" : "bg-slate-50 hover:bg-slate-100"}`}
-              >{i}</button>
-            ))}
-          </div>
-        </div>
-
-        {/* Label */}
-        <div className="mb-3">
-          <label className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1 block">Descrição</label>
-          <input
-            className="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm text-slate-700 focus:outline-none focus:border-slate-400 focus:ring-2 focus:ring-slate-100"
-            placeholder="Ex: Aluguel, Salário..."
-            value={label} onChange={(e) => setLabel(e.target.value)}
-          />
-        </div>
-
-        {/* Amount + Date */}
-        <div className="flex gap-3 mb-2">
-          <div className="flex-1">
-            <label className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1 block">Valor (R$)</label>
-            <input
-              className="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm text-slate-700 focus:outline-none focus:border-slate-400 focus:ring-2 focus:ring-slate-100"
-              placeholder="0,00" value={amount} onChange={(e) => setAmount(e.target.value)} inputMode="decimal"
-            />
-          </div>
-          <div className="flex-1">
-            <label className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1 block">Data</label>
-            <input
-              type="date"
-              className="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm text-slate-700 focus:outline-none focus:border-slate-400 focus:ring-2 focus:ring-slate-100"
-              value={date} onChange={(e) => setDate(e.target.value)}
-            />
-          </div>
-        </div>
-
-        {error && <p className="text-xs text-rose-500 mt-1 mb-2">{error}</p>}
-
-        <button
-          onClick={handleSubmit} disabled={saving}
-          className="w-full mt-3 bg-slate-800 hover:bg-slate-700 active:scale-[0.98] disabled:opacity-50 text-white font-semibold rounded-xl py-3 text-sm transition-all flex items-center justify-center gap-2"
-        >
-          {saving
-            ? <><span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> Salvando…</>
-            : "Adicionar"}
-        </button>
-      </div>
-    </div>
-  );
-}
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
-export default function Page() {
+export default function FinancesPage() {
   const [financas, setFinancas] = useState<Financa[]>([]);
   const [fetchLoading, setFetchLoading] = useState(true);
   const [fetchError, setFetchError] = useState("");
@@ -291,6 +77,10 @@ export default function Page() {
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [categoryFilter, setCategoryFilter] = useState<Category | "all">("all");
   const [periodFilter, setPeriodFilter] = useState<PeriodFilter>("month");
+
+  // Delay
+  const sleep = (ms: number) =>
+    new Promise((resolve) => setTimeout(resolve, ms));
 
   // Fetch
   const load = useCallback(async () => {
@@ -315,6 +105,7 @@ export default function Page() {
       setFinancas((prev) => [created, ...prev]);
       setModalOpen(false);
 
+      await sleep(500); // delay
       await load(); // refresh to get correct order and totals
     } finally {
       setSaving(false);
@@ -337,12 +128,24 @@ export default function Page() {
   const totalIncome = periodSlice.filter((f) => f.tipo === "income").reduce((s, f) => s + f.valor, 0);
   const totalExpense = periodSlice.filter((f) => f.tipo === "expense").reduce((s, f) => s + f.valor, 0);
   const totalPurchase = periodSlice.filter((f) => f.tipo === "purchase").reduce((s, f) => s + f.valor, 0);
-  const balance = totalIncome - totalExpense - totalPurchase;
   const totalOut = totalExpense + totalPurchase;
-  const expensePct = totalIncome > 0 ? (totalExpense / totalIncome) * 100 : 0;
-  const purchasePct = totalIncome > 0 ? (totalPurchase / totalIncome) * 100 : 0;
-  const gaugeExpense = totalIncome > 0 ? Math.min((totalExpense / totalIncome) * 100, 100) : 0;
-  const gaugePurchase = totalIncome > 0 ? Math.min((totalPurchase / totalIncome) * 100, 100 - gaugeExpense) : 0;
+
+  const income = totalIncome;
+  const out = totalOut;
+  const balance = income - out;
+
+  const expensePct = income > 0
+    ? Math.min((totalExpense / income) * 100, 100)
+    : 0;
+
+  const purchasePct = income > 0
+    ? Math.min((totalPurchase / income) * 100, 100)
+    : 0;
+
+  const usedPct = Math.min(expensePct + purchasePct, 100);
+  const freePct = Math.max(100 - usedPct, 0);
+
+  const isNegative = balance < 0;
 
   const visible = periodSlice
     .filter((f) => categoryFilter === "all" || f.tipo === categoryFilter)
@@ -385,101 +188,230 @@ export default function Page() {
 
   // ── Main view ──
   return (
-    <div className="min-h-screen bg-slate-50 font-sans">
-
-      {/* Loading toast (subsequent refreshes) */}
+    <div className="min-h-screen bg-slate-50 font-sans max-w-5xl:">
       {fetchLoading && <LoadingToast />}
 
-      {/* ── Header ── */}
+      {/* Header */}
       <header className="bg-white border-b border-slate-100 sticky top-0 z-30">
-        <div className="max-w-2xl mx-auto px-4 py-4 flex items-center justify-between">
+        <div className="max-w-5xl mx-auto px-4 py-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <div>
-            <h1 className="text-lg font-bold tracking-tight text-slate-800">Balanço</h1>
-            <p className="text-xs text-slate-400">{periodSubtitle(periodFilter)}</p>
+            <h1 className="text-lg font-bold tracking-tight text-slate-800">
+              Balanço
+            </h1>
+            <p className="text-xs text-slate-400">
+              {periodSubtitle(periodFilter)}
+            </p>
           </div>
-          <div className="flex items-center gap-2">
+
+          <div className="flex items-center gap-2 w-full sm:w-auto">
             {/* Refresh */}
             <button
-              onClick={load} disabled={fetchLoading} title="Atualizar"
-              className="p-2 rounded-xl text-slate-400 hover:text-slate-600 hover:bg-slate-50 transition-all disabled:opacity-40"
+              onClick={load}
+              disabled={fetchLoading}
+              title="Atualizar"
+              className="cursor-pointer p-2 rounded-xl text-slate-400 hover:text-slate-600 hover:bg-slate-50 transition-all disabled:opacity-40"
             >
-              <svg className={`w-4 h-4 ${fetchLoading ? "animate-spin" : ""}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+              <svg
+                className={`w-4 h-4 ${fetchLoading ? "animate-spin" : ""}`}
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth={2}
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                />
               </svg>
             </button>
+
             {/* Add */}
             <button
               onClick={() => setModalOpen(true)}
-              className="flex items-center gap-1.5 bg-slate-800 hover:bg-slate-700 active:scale-[0.97] text-white text-sm font-semibold px-4 py-2 rounded-xl transition-all shadow-sm"
+              className="cursor-pointer flex-1 sm:flex-none flex items-center justify-center gap-1.5 bg-slate-800 hover:bg-slate-700 active:scale-[0.97] text-white text-sm font-semibold px-4 py-2 rounded-xl transition-all shadow-sm"
             >
-              <span className="text-base leading-none">+</span> Adicionar
+              <span className="text-base leading-none">+</span>
+              Adicionar
             </button>
           </div>
         </div>
 
         {/* Period pills */}
-        <div className="max-w-2xl mx-auto px-4 pb-3 flex gap-1.5">
-          {(Object.keys(PERIOD_LABELS) as PeriodFilter[]).map((p) => (
-            <button key={p} onClick={() => setPeriodFilter(p)}
-              className={`px-3 py-1 rounded-lg text-xs font-semibold transition-all ${periodFilter === p ? "bg-slate-800 text-white" : "bg-slate-100 text-slate-400 hover:text-slate-600"
-                }`}
-            >
-              {PERIOD_LABELS[p]}
-            </button>
-          ))}
+        <div className="max-w-5xl mx-auto px-4 pb-3">
+          <div className="flex gap-1.5 overflow-x-auto scrollbar-none">
+            {(Object.keys(PERIOD_LABELS) as PeriodFilter[]).map((p) => (
+              <button
+                key={p}
+                onClick={() => setPeriodFilter(p)}
+                className={`cursor-pointer whitespace-nowrap px-3 py-1 rounded-lg text-xs font-semibold transition-all ${periodFilter === p
+                  ? "bg-slate-800 text-white"
+                  : "bg-slate-100 text-slate-400 hover:text-slate-600"
+                  }`}
+              >
+                {PERIOD_LABELS[p]}
+              </button>
+            ))}
+          </div>
         </div>
       </header>
 
-      <main className="max-w-2xl mx-auto px-4 py-6 space-y-6">
-
+      <main className="max-w-5xl mx-auto px-4 py-6 space-y-6 pb-24 overflow-y-hidden">
         {/* Error banner */}
         {fetchError && (
-          <div className="bg-rose-50 border border-rose-200 text-rose-600 rounded-2xl px-4 py-3 text-sm flex items-center justify-between">
-            {fetchError}
-            <button onClick={load} className="underline text-xs ml-3 flex-shrink-0">Tentar novamente</button>
+          <div className="bg-rose-50 border border-rose-200 text-rose-600 rounded-2xl px-4 py-3 text-sm flex items-center justify-between gap-3">
+            <span>{fetchError}</span>
+
+            <button
+              onClick={load}
+              className="cursor-pointer underline text-xs shrink-0"
+            >
+              Tentar novamente
+            </button>
           </div>
         )}
 
         {/* Summary */}
-        <div className={`grid grid-cols-2 gap-3 transition-opacity duration-200 ${fetchLoading ? "opacity-50" : ""}`}>
-          <SummaryCard label="Receitas" value={totalIncome} type="income" />
-          <SummaryCard label="Saldo" value={balance} type="balance" />
-          <SummaryCard label="Gastos fixos" value={totalExpense} type="expense" percent={expensePct} />
-          <SummaryCard label="Compras" value={totalPurchase} type="purchase" percent={purchasePct} />
+        <div
+          className={`grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3 transition-opacity duration-200 ${fetchLoading ? "opacity-50" : ""
+            }`}
+        >
+          <SummaryCard
+            label="Receitas"
+            value={totalIncome}
+            type="income"
+          />
+
+          <SummaryCard
+            label="Saldo"
+            value={balance}
+            type="balance"
+          />
+
+          <SummaryCard
+            label="Gastos fixos"
+            value={totalExpense}
+            type="expense"
+            percent={expensePct}
+          />
+
+          <SummaryCard
+            label="Compras"
+            value={totalPurchase}
+            type="purchase"
+            percent={purchasePct}
+          />
         </div>
 
-        {/* Gauge bar */}
-        <div className={`bg-white rounded-2xl border border-slate-100 p-5 shadow-sm transition-opacity duration-200 ${fetchLoading ? "opacity-50" : ""}`}>
-          <div className="flex items-center justify-between mb-3">
-            <span className="text-xs font-semibold text-slate-400 uppercase tracking-widest">Saídas vs. Receita</span>
-            <span className="text-xs font-bold text-slate-500">{fmt(totalOut)} / {fmt(totalIncome)}</span>
-          </div>
-          <div className="w-full h-3 bg-slate-100 rounded-full overflow-hidden flex">
-            <div className="h-full bg-rose-400 rounded-l-full transition-all duration-700" style={{ width: `${gaugeExpense}%` }} />
-            <div className="h-full bg-amber-400 transition-all duration-700" style={{ width: `${gaugePurchase}%` }} />
-          </div>
-          <div className="flex gap-4 mt-2.5">
-            {([["bg-rose-400", "Gastos"], ["bg-amber-400", "Compras"], ["bg-slate-100", "Livre"]] as [string, string][]).map(([bg, lbl]) => (
-              <span key={lbl} className="flex items-center gap-1.5 text-xs text-slate-400">
-                <span className={`w-2.5 h-2.5 rounded-sm ${bg} inline-block`} /> {lbl}
+        {/* Gauge */}
+        <div
+          className={`bg-white rounded-2xl border p-5 shadow-sm transition-all duration-300 ${isNegative
+            ? "border-rose-200 bg-rose-50/30"
+            : "border-slate-100"
+            }`}
+        >
+          <div className="flex items-start justify-between gap-4 mb-4">
+            <div>
+              <span className="text-xs font-semibold text-slate-400 uppercase tracking-widest">
+                Saúde Financeira
               </span>
-            ))}
+
+              <h3
+                className={`mt-2 text-2xl font-bold ${isNegative
+                  ? "text-rose-600"
+                  : "text-slate-800"
+                  }`}
+              >
+                {fmt(balance)}
+              </h3>
+
+              <p className="text-xs text-slate-400 mt-1">
+                {isNegative
+                  ? "Déficit financeiro"
+                  : "Saldo disponível"}
+              </p>
+            </div>
+
+            <div className="text-right text-xs">
+              <div className="text-slate-400">Receitas</div>
+              <div className="font-bold text-emerald-600">
+                {fmt(income)}
+              </div>
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <div className="flex justify-between text-xs">
+              <span className="text-slate-500">Saídas</span>
+              <span className="font-semibold text-slate-700">
+                {fmt(out)}
+              </span>
+            </div>
+
+            <div className="w-full h-3 rounded-full overflow-hidden bg-slate-100 flex">
+              <div
+                className="bg-rose-400 transition-all duration-700"
+                style={{ width: `${expensePct}%` }}
+              />
+
+              <div
+                className="bg-amber-400 transition-all duration-700"
+                style={{ width: `${purchasePct}%` }}
+              />
+
+              <div
+                className={`transition-all duration-700 ${isNegative
+                  ? "bg-rose-200"
+                  : "bg-emerald-300"
+                  }`}
+                style={{ width: `${freePct}%` }}
+              />
+            </div>
+          </div>
+
+          <div className="flex flex-wrap gap-4 mt-4">
+            <span className="flex items-center gap-1.5 text-xs text-slate-500">
+              <span className="w-2.5 h-2.5 rounded-full bg-rose-400" />
+              Gastos
+            </span>
+
+            <span className="flex items-center gap-1.5 text-xs text-slate-500">
+              <span className="w-2.5 h-2.5 rounded-full bg-amber-400" />
+              Compras
+            </span>
+
+            <span className="flex items-center gap-1.5 text-xs text-slate-500">
+              <span
+                className={`w-2.5 h-2.5 rounded-full ${isNegative
+                  ? "bg-rose-200"
+                  : "bg-emerald-300"
+                  }`}
+              />
+              {isNegative ? "Déficit" : "Disponível"}
+            </span>
           </div>
         </div>
 
-        {/* Transaction list */}
-        <div className={`bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden transition-opacity duration-200 ${fetchLoading ? "opacity-50" : ""}`}>
-          {/* Category tabs */}
-          <div className="flex border-b border-slate-50 px-4 pt-4 gap-1">
+        {/* Transactions */}
+        <div
+          className={`mb-32 min-h-30 bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden transition-opacity duration-200 ${fetchLoading ? "opacity-50" : ""
+            }`}
+        >
+          <div className="flex overflow-hidden border-b border-slate-50 px-4 pt-4 gap-1 ">
             {(["all", "income", "expense", "purchase"] as const).map((f) => (
-              <button key={f} onClick={() => setCategoryFilter(f)}
-                className={`pb-3 px-3 text-xs font-semibold transition-all border-b-2 -mb-px ${categoryFilter === f ? "border-slate-800 text-slate-800" : "border-transparent text-slate-400 hover:text-slate-600"
+              <button
+                key={f}
+                onClick={() => setCategoryFilter(f)}
+                className={`cursor-pointer whitespace-nowrap pb-3 px-3 text-xs font-semibold transition-all border-b-2 -mb-px ${categoryFilter === f
+                  ? "border-slate-800 text-slate-800"
+                  : "border-transparent text-slate-400 hover:text-slate-600"
                   }`}
               >
                 {f === "all" ? "Todos" : CATEGORY_CONFIG[f].label}
               </button>
             ))}
-            <span className="ml-auto self-center pb-3 text-xs text-slate-300 tabular-nums">
+
+            <span className="ml-auto self-center pb-3 text-xs text-slate-300 tabular-nums whitespace-nowrap">
               {visible.length} item{visible.length !== 1 ? "s" : ""}
             </span>
           </div>
@@ -487,18 +419,30 @@ export default function Page() {
           <div className="px-4">
             {visible.length === 0 ? (
               <div className="py-12 text-center text-slate-300 text-sm">
-                Nenhuma transação {periodFilter !== "all" && `— ${PERIOD_LABELS[periodFilter].toLowerCase()}`}
+                Nenhuma transação{" "}
+                {periodFilter !== "all" &&
+                  `— ${PERIOD_LABELS[periodFilter].toLowerCase()}`}
               </div>
             ) : (
               visible.map((tx) => (
-                <TransactionRow key={tx.id} tx={tx} onDelete={handleDelete} deleting={deletingId === tx.id} />
+                <TransactionRow
+                  key={tx.id}
+                  tx={tx}
+                  onDelete={handleDelete}
+                  deleting={deletingId === tx.id}
+                />
               ))
             )}
           </div>
         </div>
       </main>
 
-      <AddModal open={modalOpen} onClose={() => setModalOpen(false)} onAdd={handleAdd} saving={saving} />
+      <AddModal
+        open={modalOpen}
+        onClose={() => setModalOpen(false)}
+        onAdd={handleAdd}
+        saving={saving}
+      />
     </div>
   );
 }

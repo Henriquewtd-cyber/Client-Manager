@@ -69,6 +69,7 @@ export async function criarEvento(data: any) {
                 end: data.end,
                 description: data.description,
                 status: data.status,
+                type: data.type,
                 color: eventColors[data.title] || "#1E90FF", // Cor padrão se não encontrada
             },
         });

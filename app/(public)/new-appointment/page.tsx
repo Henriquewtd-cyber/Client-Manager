@@ -94,10 +94,6 @@ type ServiceId = typeof SERVICES[number]["id"];
 export default function AgendamentoPage() {
   const [activeModal, setActiveModal] = useState<ServiceId | null>(null);
 
-  const activeService = SERVICES.find(s => s.id === activeModal);
-
-  const MESES_SHORT = ["jan", "fev", "mar", "abr", "mai", "jun", "jul", "ago", "set", "out", "nov", "dez"];
-
   return (
     <>
       {/* ── Font import ──────────────────────────────────────── */}
@@ -115,7 +111,7 @@ export default function AgendamentoPage() {
           {/* ── Icons ─────────────────────────────────────────────── */}
 
           <a //Whatsapp floating button
-            href="https://wa.me/5511999999999"
+            href="https://wa.me/5511958269056"
             target="_blank"
             className="fixed bottom-22 right-6 z-10 bg-green-500 w-14 h-14 rounded-full flex items-center justify-center text-white text-2xl shadow-lg"
           >

@@ -1,15 +1,18 @@
 
 import { NextResponse } from "next/server";
 import { criarEvento, pegarTodosEventos } from "@/app/services/user.service";
-// import { criarConfirmarJob, criarLembreteJob } from "@/app/services/job.service";
 
 export async function POST(request: Request) {
 
-    const { slots, total, service, dados, duration } = await request.json();
+    let { slots, total, service, dados, duration, tipo } = await request.json();
 
     try {
+        if (!duration) duration = 30;
+
         for (const slot of slots) {
             const baseDate = new Date(slot.date);
+
+
 
             const [hours, minutes] = slot.time.split(":");
 
@@ -17,6 +20,7 @@ export async function POST(request: Request) {
             baseDate.setUTCMinutes(Number(minutes));
             baseDate.setUTCSeconds(0);
             baseDate.setUTCMilliseconds(0);
+
 
             const startDate = baseDate.toISOString();
 
@@ -30,28 +34,26 @@ export async function POST(request: Request) {
             baseDate.setUTCSeconds(0);
             baseDate.setUTCMilliseconds(0);
 
+
             const finalDate = baseDate.toISOString();
 
+
             const data: any = {
-                title: service,
-                nomeCliente: dados.nome,
-                telefone: dados.telefone,
+                title: service || dados.title || "Sem título",
+                nomeCliente: dados.nome || dados.nomeCliente || "Pessoal",
+                telefone: dados.telefone || "Sem telefone",
                 start: startDate,
                 end: finalDate,
-                description: dados.descricao,
+                description: dados.descricao || dados.description || "Sem descrição",
                 status: "Pendente",
+                type: tipo
             };
-
             const evento = await criarEvento(data);
 
             if (!evento) {
                 throw new Error("Nenhum evento encontrado");
             }
 
-            Promise.allSettled([
-                //criarConfirmarJob(evento.id, data.start, dados.telefone, dados.nome),
-                //criarLembreteJob(evento.id, data.start, dados.telefone, dados.nome),
-            ]);
         }
 
         const response = NextResponse.json({

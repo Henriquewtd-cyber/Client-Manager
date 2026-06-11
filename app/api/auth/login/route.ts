@@ -3,7 +3,6 @@
 import { NextResponse } from "next/server";
 import * as bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
-
 import { buscarUsuarioPorEmail, criarUsuario } from "@/app/services/user.service";
 
 export async function POST(request: Request) {
@@ -14,7 +13,7 @@ export async function POST(request: Request) {
     const tempo = manter ? "7d" : "1h";
 
     try {
-        criarUsuario({
+        await criarUsuario({
             name: "Henrique",
             email: "henrique@email.com",
             password: "123456",
@@ -30,9 +29,9 @@ export async function POST(request: Request) {
             );
         }
 
-        const sucesso = await bcrypt.compare(senha, user.password);
 
-        if (!sucesso) {
+        if (senha != user.password) {
+
             return NextResponse.json({ error: "Senha incorreta" }, { status: 401 });
         }
 
