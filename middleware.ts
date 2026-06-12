@@ -15,7 +15,7 @@ export async function middleware(request: NextRequest) {
         //todas essas rotas são publicas conforme estabelecidas, as duas primeiras são paginas intermediarias do next, precisam estar aqui para a pagina rodar
         pathname === "/" ||
         pathname.startsWith("/_next") ||
-        pathname.startsWith("/favicon.ico") ||
+        pathname.startsWith("/icon.png") ||
         pathname.startsWith("/api/auth") ||
         pathname.startsWith("/api/public") ||
         pathname.startsWith("/login") ||

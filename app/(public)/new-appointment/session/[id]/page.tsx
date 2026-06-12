@@ -102,7 +102,7 @@ export default function AgendarPage({
             const res = await fetch("/api/new-appointment", {
                 method: "POST",
                 headers: { "Content-type": "application/json" },
-                body: JSON.stringify({ slots, total, service: SERVICES_MAP[id].label, dados, duration }),
+                body: JSON.stringify({ slots, total, service: SERVICES_MAP[id].label, dados, duration, tipo: "cliente" }),
             });
 
             if (!res.ok) {
