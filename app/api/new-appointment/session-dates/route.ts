@@ -8,11 +8,14 @@ dayjs.extend(utc);
 dayjs.extend(timezone);
 
 const TIMEZONE = "America/Sao_Paulo";
+<<<<<<< HEAD
 
 type Appointment = {
     start: string;
     end: string;
 };
+=======
+>>>>>>> 039ba493d0a5b516ba77f18da96509a7e40f5d34
 
 export async function GET(request: Request) {
     const horarios = [
@@ -38,6 +41,10 @@ export async function GET(request: Request) {
         ) {
             const diaDaSemana = dataAtual.day(); // 0 = domingo, 6 = sábado
 
+<<<<<<< HEAD
+=======
+            // Remova ou ajuste essa condição conforme os dias que você atende
+>>>>>>> 039ba493d0a5b516ba77f18da96509a7e40f5d34
             if (diaDaSemana !== 0) {
                 const dateKey = dataAtual.format("YYYY-MM-DD");
 
@@ -58,6 +65,7 @@ export async function GET(request: Request) {
         }
 
         // Remove horários já ocupados (considerando duração)
+<<<<<<< HEAD
         datas.forEach((data: Appointment) => {
             const inicio = dayjs(data.start).tz(TIMEZONE);
             const fim = dayjs(data.end).tz(TIMEZONE);
@@ -69,6 +77,19 @@ export async function GET(request: Request) {
                 const [h, m] = horario.split(":").map(Number);
                 const slot = inicio.hour(h).minute(m).second(0);
 
+=======
+        datas.forEach((data) => {
+            const inicio = dayjs(data.start).tz(TIMEZONE);
+            const fim = dayjs(data.end).tz(TIMEZONE);   // <-- usa data.end
+            const dateKey = inicio.format("YYYY-MM-DD");
+
+            if (!avaliableTimes[dateKey]) return;
+
+            avaliableTimes[dateKey] = avaliableTimes[dateKey].filter((horario) => {
+                const [h, m] = horario.split(":").map(Number);
+                const slot = inicio.hour(h).minute(m).second(0);
+
+>>>>>>> 039ba493d0a5b516ba77f18da96509a7e40f5d34
                 // Remove o slot se ele começa antes do fim e termina depois do início
                 const slotFim = slot.add(30, "minute");
                 return !(slot.isBefore(fim) && slotFim.isAfter(inicio));
